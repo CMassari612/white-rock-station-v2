@@ -1,0 +1,14 @@
+{
+  "watch": ["server"],
+  "ext": "ts",
+  "ignore": [
+    "data/**",
+    "**/*.log",
+    "tmp/**",
+    ".cache/**",
+    "dist/**",
+    "node_modules/**"
+  ],
+  "exec": "tsx server/index.ts",
+  "verbose": false
+}

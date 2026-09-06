@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@layer theme {
+  :root {
+    /* Brand Colors - White Rock Station */
+    --forest-green: #2F4F43;
+    --river-blue: #3D6E8A;
+    --sand-tan: #D6C9B8;
+    --warm-brown: #8B6A4F;
+    --off-white: #F8F6F2;
+
+    /* Semantic Colors */
+    --primary: var(--forest-green);
+    --secondary: var(--river-blue);
+    --accent: var(--warm-brown);
+    --background: var(--off-white);
+    --neutral: var(--sand-tan);
+
+    /* UI Colors */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 20% 26%;
+    
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[var(--background)] text-[var(--forest-green)];
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  h6 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+  }
+}
+
+/* Trail Map — animated "redraw" of the Armstrong Trail */
+@keyframes wrsTrailDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes wrsFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wrsPinPop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.wrs-trail-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: wrsTrailDraw 2.6s ease-out forwards;
+}
+
+.wrs-map-pin {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wrsPinPop 0.5s ease-out forwards;
+}
+
+.wrs-map-label {
+  opacity: 0;
+  animation: wrsFadeUp 0.6s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrs-trail-line,
+  .wrs-map-pin,
+  .wrs-map-label {
+    animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
