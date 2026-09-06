@@ -10,6 +10,7 @@ node_modules/
 # Build output
 build/
 dist/
+server-bundle.cjs
 
 # Data storage — ship the cottage seed, ignore runtime bookings/cleaners
 data/*

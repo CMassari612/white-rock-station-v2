@@ -1,6 +1,7 @@
-// Vercel serverless entry point. All /api/* requests are routed here (see
-// vercel.json) and handled by the existing Express app, which already mounts
-// every route under /api/... — including the raw-body Stripe webhook.
-import app from '../server/index';
-
-export default app;
+// @ts-nocheck
+// Vercel serverless entry. The full Express server is pre-bundled into a
+// single self-contained CommonJS file (server-bundle.cjs) during the build
+// (see vercel.json buildCommand). We require that here so Vercel doesn't have
+// to resolve/transpile the whole server/ TypeScript tree at runtime.
+const mod = require('../server-bundle.cjs');
+module.exports = mod.default || mod;

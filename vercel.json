@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "vite build",
+  "buildCommand": "vite build && npx --yes esbuild@0.24.2 server/index.ts --bundle --platform=node --format=cjs --packages=external --outfile=server-bundle.cjs",
   "outputDirectory": "build",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api" },
