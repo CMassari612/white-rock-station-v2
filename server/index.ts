@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import unitsRoutes from './routes/units';
 import availabilityRoutes from './routes/availability';
 import bookingRequestRoutes from './routes/booking-request';
@@ -15,8 +14,6 @@ import staffRoutes from './routes/staff';
 import { seedUnitsIfNeeded } from './utils/seedUnits';
 import { expirePendingBookings } from './storage/bookingsStore';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const app = express();
