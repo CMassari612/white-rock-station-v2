@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
-import { WrsLogo } from './WrsLogo';
 
 interface NavigationProps {
   currentPage: string;
@@ -47,7 +46,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
             className="flex items-center"
             aria-label="White Rock Station — home"
           >
-            <WrsLogo height={54} color="#f4efe3" />
+            <img
+              src="/brand/wrs-lockup-cream.png"
+              alt="White Rock Station — Riverfront Resort & Marina"
+              style={{ height: 72, width: 'auto' }}
+            />
           </button>
 
           {/* Desktop Navigation */}

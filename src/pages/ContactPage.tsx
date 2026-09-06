@@ -17,7 +17,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     message: '',
   });
 
-  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
   const mapAddress = '395 Silvis Hollow Rd, Kittanning, PA 16201';
   const mapsLink = `https://maps.google.com/?q=${encodeURIComponent(mapAddress)}`;
 
@@ -201,33 +200,24 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center mb-8">Find Us</h2>
           <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-            {mapsApiKey ? (
-              <iframe
-                title="White Rock Station location map"
-                src={`https://www.google.com/maps/embed/v1/place?key=${mapsApiKey}&q=${encodeURIComponent(mapAddress)}&zoom=14`}
-                className="block aspect-video w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-            ) : (
-              /* Fallback shown until VITE_GOOGLE_MAPS_API_KEY is set */
-              <div className="aspect-video bg-[var(--sand-tan)]/30 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <MapPin size={64} className="mx-auto mb-4 text-[var(--river-blue)]" />
-                  <h4 className="mb-2">Location Map</h4>
-                  <p className="text-[var(--forest-green)]/70 mb-4">{mapAddress}</p>
-                  <a
-                    href={mapsLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--river-blue)] hover:underline"
-                  >
-                    Open in Google Maps →
-                  </a>
-                </div>
-              </div>
-            )}
+            <iframe
+              title="White Rock Station location map"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&z=14&output=embed`}
+              className="block aspect-video w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+          <div className="mt-4 text-center">
+            <a
+              href={mapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--river-blue)] hover:underline"
+            >
+              Open in Google Maps →
+            </a>
           </div>
 
           <div className="mt-8 text-center">

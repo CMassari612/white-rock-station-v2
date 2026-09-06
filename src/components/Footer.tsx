@@ -11,9 +11,14 @@ export function Footer({ onNavigate }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div>
-            <h5 className="text-[var(--sand-tan)] mb-4">White Rock Station</h5>
+            <img
+              src="/brand/wrs-lockup-cream.png"
+              alt="White Rock Station — Riverfront Resort & Marina"
+              className="h-20 w-auto mb-2"
+            />
+            <p className="text-[var(--sand-tan)] text-sm tracking-wide mb-4">Riverfront Resort &amp; Marina</p>
             <p className="text-white/80 text-sm leading-relaxed">
-              Riverside camping, cabins, and adventure along the Armstrong Trail. Your perfect outdoor escape awaits.
+              Riverfront cottages, primitive camping, and river access along the Armstrong Trail. Your riverside escape awaits.
             </p>
             {/* Hidden staff shortcut: invisible button that opens the admin login.
                 Size is set via inline styles (no Tailwind compiler) so the empty
@@ -97,7 +102,7 @@ export function Footer({ onNavigate }: FooterProps) {
         {/* Bottom Bar */}
         <div className="border-t border-white/20 pt-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p className="text-white/60 text-sm">
-            © 2024 White Rock Station. All rights reserved.
+            © 2026 White Rock Station. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
             <button className="text-white/60 hover:text-white">Privacy Policy</button>

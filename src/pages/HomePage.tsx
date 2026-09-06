@@ -20,9 +20,9 @@ export function HomePage({ onNavigate }: Props) {
         <div className="wrs-hero__bg" style={{ backgroundImage: 'url(/images/scenery/Scenery%2003.jpg)' }} />
         <div className="wrs-hero__scrim" />
         <div className="wrs-container wrs-hero__inner">
-          <p className="wrs-eyebrow" style={{ color: 'var(--wrs-tan)' }}>Kittanning, Pennsylvania</p>
-          <h1 className="wrs-h1" style={{ fontSize: 'clamp(46px, 8vw, 88px)', letterSpacing: '-0.02em', marginBottom: 8 }}>White Rock Station</h1>
-          <p style={{ fontSize: 'clamp(18px,2.4vw,24px)', color: 'var(--wrs-tan)', fontWeight: 700, margin: '0 0 16px' }}>Riverfront Cottages &amp; Camping</p>
+          <p className="wrs-eyebrow" style={{ color: '#f8f6f2' }}>Kittanning, Pennsylvania</p>
+          <h1 className="wrs-h1" style={{ fontSize: 'clamp(46px, 8vw, 88px)', letterSpacing: '-0.02em', marginBottom: 8, color: '#f8f6f2' }}>White Rock Station</h1>
+          <p style={{ fontSize: 'clamp(18px,2.4vw,24px)', color: '#f8f6f2', fontWeight: 700, margin: '0 0 16px' }}>Riverfront Cottages &amp; Camping</p>
           <p className="wrs-hero__sub">
             Cozy cottages, primitive camping, and direct access to the Armstrong Trail — book directly with White Rock Station.
           </p>

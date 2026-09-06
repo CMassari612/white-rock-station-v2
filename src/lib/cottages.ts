@@ -2,8 +2,12 @@
 // Mirrors server/types/unit.ts and server/utils/pricing.ts so the UI can show
 // a live price breakdown before hitting the booking API.
 
-const API_URL =
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5050' : '');
+// In production the API is served same-origin (/api/*) on Vercel, so we force
+// an empty base regardless of VITE_API_URL — a stale/incorrect value in the
+// hosting env can't misdirect the frontend. VITE_API_URL only applies in dev.
+const API_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:5050')
+  : '';
 
 export type UnitType = 'cottage' | 'tent_site' | 'kayak';
 

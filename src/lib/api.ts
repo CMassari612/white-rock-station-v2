@@ -3,8 +3,9 @@ import { getAdminPassword } from './adminSession';
 // In production (e.g. Vercel) the API is served from the same origin, so use a
 // relative base ('') and let the platform route /api/* to the serverless function.
 // In local dev, default to the standalone Express server on :5050.
-const API_URL =
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5050' : '');
+const API_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:5050')
+  : '';
 
 export type LodgingType = 'small-cabin' | 'large-cabin' | 'campsite';
 
