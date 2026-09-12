@@ -1,13 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Eye, EyeOff, Plus, Trash2, CalendarOff, Pencil } from 'lucide-react';
+import { Eye, EyeOff, Plus, Trash2, CalendarOff, Pencil, Upload } from 'lucide-react';
 import { clearAdminPassword, getAdminPassword, getRole, getStaffName } from '../lib/adminSession';
 import {
   adminGetBookings, adminApprove, adminReject,
   getCleaningSchedule, getCleaners, addCleaner, deleteCleaner,
   adminGetUnits, adminUpdateUnit, adminAddUnit, adminDeleteUnit, adminAddBlock, adminRemoveBlock, adminWinterClosure,
+  adminUploadPhoto, adminDeletePhoto, adminReorderPhotos,
   AdminBooking, Cleaner, CleaningRow, AdminUnit,
 } from '../lib/adminApi';
+
+// Downscale + compress an image in the browser before upload (keeps pages fast
+// and storage small — phone photos are often several MB).
+async function optimizeImage(file: File, maxDim = 2000, quality = 0.82): Promise<Blob> {
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file; // unsupported type — send as-is
+  let { width, height } = bitmap;
+  const scale = Math.min(1, maxDim / Math.max(width, height));
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  const blob: Blob | null = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+  return blob || file;
+}
 
 interface Props {
   onNavigate: (page: string, slug?: string) => void;
@@ -307,6 +326,40 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   const [bReason, setBReason] = useState('');
   const isCottage = unit.unitType === 'cottage';
 
+  const [photos, setPhotos] = useState<string[]>(unit.photos || []);
+  const [uploading, setUploading] = useState(0);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  async function onFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      setUploading(n => n + 1);
+      try {
+        const blob = await optimizeImage(file);
+        const updated = await adminUploadPhoto(unit.id, blob);
+        setPhotos(updated.photos || []);
+      } catch (e: any) { onError(e?.message || 'Photo upload failed'); }
+      finally { setUploading(n => n - 1); }
+    }
+    await onSaved();
+  }
+  async function removePhoto(url: string) {
+    const prev = photos;
+    setPhotos(photos.filter(p => p !== url));
+    try { await adminDeletePhoto(unit.id, url); await onSaved(); }
+    catch (e: any) { setPhotos(prev); onError(e?.message || 'Could not remove photo'); }
+  }
+  async function reorder(from: number, to: number) {
+    if (from === to || from < 0 || to < 0 || from >= photos.length || to >= photos.length) return;
+    const next = photos.slice();
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setPhotos(next);
+    try { await adminReorderPhotos(unit.id, next); await onSaved(); }
+    catch (e: any) { onError(e?.message || 'Could not reorder photos'); }
+  }
+
   async function save() {
     setSaving(true);
     try {
@@ -356,6 +409,33 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
         <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', borderColor: '#c0392b', color: '#c0392b', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={removeSite}><Trash2 size={15} /> Delete site</button>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>
+          Photos <span className="wrs-muted" style={{ fontWeight: 400 }}>· drag to reorder — the first photo is the cover</span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          {photos.map((p, i) => (
+            <div
+              key={p}
+              draggable
+              onDragStart={() => setDragIdx(i)}
+              onDragOver={e => e.preventDefault()}
+              onDrop={() => { if (dragIdx !== null) reorder(dragIdx, i); setDragIdx(null); }}
+              style={{ position: 'relative', width: 120, height: 90, borderRadius: 8, overflow: 'hidden', border: i === 0 ? '2px solid var(--wrs-green)' : '1px solid var(--wrs-line)', cursor: 'grab', background: 'var(--wrs-offwhite)' }}
+            >
+              <img src={encodeURI(p)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+              {i === 0 && <span style={{ position: 'absolute', top: 4, left: 4, background: 'var(--wrs-green)', color: '#fff', fontSize: 10, padding: '1px 6px', borderRadius: 999 }}>Cover</span>}
+              <button aria-label="Remove photo" onClick={() => removePhoto(p)} style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 22, height: 22, cursor: 'pointer', lineHeight: 1, fontSize: 15 }}>×</button>
+            </div>
+          ))}
+          <label style={{ width: 120, height: 90, borderRadius: 8, border: '2px dashed var(--wrs-line)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 12, gap: 4, textAlign: 'center' }}>
+            <Upload size={18} />
+            {uploading > 0 ? `Uploading… (${uploading})` : 'Add photos'}
+            <input type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => { onFiles(e.target.files); e.currentTarget.value = ''; }} />
+          </label>
+        </div>
       </div>
 
       {unit.unitType !== 'kayak' && (

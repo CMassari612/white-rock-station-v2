@@ -112,6 +112,25 @@ export async function adminWinterClosure(input: { start: string; end: string; un
   return await call('/api/admin/units/winter-closure', 'POST', input);
 }
 
+// ---- Listing photos ----
+export async function adminUploadPhoto(id: string, blob: Blob): Promise<AdminUnit> {
+  const res = await fetch(`${API_URL}/api/admin/units/${id}/photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type || 'image/jpeg', 'x-admin-password': getAdminPassword() || '' },
+    body: blob,
+  });
+  if (res.status === 401) { const e: any = new Error('Unauthorized'); e.status = 401; throw e; }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
+  return data.unit as AdminUnit;
+}
+export async function adminDeletePhoto(id: string, url: string): Promise<AdminUnit> {
+  return (await call(`/api/admin/units/${id}/photos`, 'DELETE', { url })).unit;
+}
+export async function adminReorderPhotos(id: string, photos: string[]): Promise<AdminUnit> {
+  return (await call(`/api/admin/units/${id}`, 'PATCH', { photos })).unit;
+}
+
 // Cleaning schedule (admin + cleaner)
 export async function getCleaningSchedule(): Promise<CleaningRow[]> {
   return (await call('/api/staff/cleaning-schedule')).schedule as CleaningRow[];

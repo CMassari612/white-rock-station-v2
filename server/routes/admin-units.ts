@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { requireAdmin } from '../middleware/adminAuth';
 import { getAllUnits, saveAllUnits, addUnit, updateUnit, deleteUnit } from '../storage/unitsStore';
 import { Unit, BlockedRange, UnitType } from '../types/unit';
+import { uploadUnitPhoto, deleteUnitPhoto, isStorageConfigured } from '../utils/supabaseStorage';
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -144,6 +145,51 @@ router.delete('/:id/blocks/:blockId', async (req: Request, res: Response) => {
   unit.updatedAt = new Date().toISOString();
   await saveAllUnits(units);
   res.json({ unit });
+});
+
+// POST /api/admin/units/:id/photos — upload a listing photo (raw image bytes).
+// The admin browser optimizes/resizes before sending, so the body is a single
+// image. Appends the resulting public URL to the unit's photos array.
+router.post('/:id/photos', express.raw({ type: ['image/*'], limit: '15mb' }), async (req: Request, res: Response) => {
+  try {
+    if (!isStorageConfigured()) {
+      return res.status(503).json({ error: 'Photo storage is not configured yet (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).' });
+    }
+    const buf = req.body as Buffer;
+    if (!buf || !buf.length) return res.status(400).json({ error: 'No image data received.' });
+    const units = await getAllUnits();
+    const unit = units.find(u => u.id === req.params.id);
+    if (!unit) return res.status(404).json({ error: 'Site not found.' });
+
+    const contentType = req.get('content-type') || 'image/jpeg';
+    const url = await uploadUnitPhoto(unit.id, buf, contentType);
+    unit.photos = [...(unit.photos || []), url];
+    unit.updatedAt = new Date().toISOString();
+    await saveAllUnits(units);
+    res.status(201).json({ unit, url });
+  } catch (err: any) {
+    console.error('[ADMIN units] photo upload failed:', err);
+    res.status(500).json({ error: err?.message || 'Could not upload the photo.' });
+  }
+});
+
+// DELETE /api/admin/units/:id/photos  body: { url }  — remove one photo.
+router.delete('/:id/photos', async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body || {};
+    if (!url) return res.status(400).json({ error: 'Missing photo url.' });
+    const units = await getAllUnits();
+    const unit = units.find(u => u.id === req.params.id);
+    if (!unit) return res.status(404).json({ error: 'Site not found.' });
+    unit.photos = (unit.photos || []).filter(p => p !== url);
+    unit.updatedAt = new Date().toISOString();
+    await saveAllUnits(units);
+    await deleteUnitPhoto(url); // best-effort storage cleanup
+    res.json({ unit });
+  } catch (err: any) {
+    console.error('[ADMIN units] photo delete failed:', err);
+    res.status(500).json({ error: 'Could not remove the photo.' });
+  }
 });
 
 // POST /api/admin/winter-closure — block a date range across many units at once.
