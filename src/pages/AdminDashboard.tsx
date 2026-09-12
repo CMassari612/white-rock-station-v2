@@ -178,14 +178,21 @@ export function AdminDashboard({ onNavigate }: Props) {
               {units.map(u => (
                 <div key={u.id} className="wrs-card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                    <div>
-                      <div style={{ fontWeight: 800 }}>{u.name}</div>
-                      <div className="wrs-muted" style={{ fontSize: 13 }}>
-                        {u.unitType === 'cottage' ? 'Cottage' : u.unitType === 'tent_site' ? 'Camping' : 'Kayak'}
-                        {!u.active && ' · hidden'}{u.placeholder && ' · coming soon'}
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
+                      <div style={{ width: 72, height: 54, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--wrs-offwhite)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {u.photos?.[0]
+                          ? <img src={encodeURI(u.photos[0])} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span className="wrs-muted" style={{ fontSize: 10, textAlign: 'center' }}>No photo</span>}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 800 }}>{u.name}</div>
+                        <div className="wrs-muted" style={{ fontSize: 13 }}>
+                          {u.unitType === 'cottage' ? 'Cottage' : u.unitType === 'tent_site' ? 'Camping' : 'Kayak'}
+                          {!u.active && ' · hidden'}{u.placeholder && ' · coming soon'}
+                        </div>
                       </div>
                     </div>
-                    <button className="wrs-btn wrs-btn-outline" style={{ padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: 6, height: 34 }} onClick={() => setEditingId(editingId === u.id ? null : u.id)}>
+                    <button className="wrs-btn wrs-btn-outline" style={{ padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, flexShrink: 0 }} onClick={() => setEditingId(editingId === u.id ? null : u.id)}>
                       <Pencil size={14} /> {editingId === u.id ? 'Close' : 'Edit'}
                     </button>
                   </div>
