@@ -29,6 +29,23 @@ app.use(express.json());
 
 app.get('/api/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
+// Scheduled Airbnb calendar refresh (Vercel Cron hits this). Protected by
+// CRON_SECRET when set — Vercel sends it as "Authorization: Bearer <secret>".
+app.get('/api/cron/sync-airbnb', async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  if (secret && (req.headers.authorization || '') !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { syncAllAirbnb } = await import('./utils/airbnbSync');
+    const result = await syncAllAirbnb();
+    res.json({ ok: true, ...result });
+  } catch (e: any) {
+    console.error('[CRON] airbnb sync failed:', e);
+    res.status(500).json({ error: e?.message || 'sync failed' });
+  }
+});
+
 app.use('/api/units', unitsRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/booking', bookingRequestRoutes);

@@ -14,7 +14,7 @@ export interface BlockedRange {
   start: string; // YYYY-MM-DD, inclusive
   end: string;   // YYYY-MM-DD, inclusive
   reason?: string; // e.g. "Winter closure", "Owner use", "Maintenance"
-  source?: 'manual' | 'winter'; // where the block came from
+  source?: 'manual' | 'winter' | 'airbnb'; // where the block came from
   createdAt?: string;
 }
 
@@ -60,6 +60,10 @@ export interface Unit {
 
   // Manual admin date blocks (Airbnb-style + Winter Closure).
   blockedRanges?: BlockedRange[];
+
+  // Airbnb two-way iCal sync:
+  airbnbIcalUrl?: string;   // the Airbnb "export calendar" URL for this unit
+  airbnbSyncedAt?: string;  // ISO timestamp of the last successful import
 
   createdAt: string; // ISO
   updatedAt: string; // ISO

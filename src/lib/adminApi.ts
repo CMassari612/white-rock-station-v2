@@ -34,6 +34,7 @@ export interface AdminUnit {
   tagline?: string; shortDescription?: string; description?: string;
   location?: string; address?: string; photos?: string[]; amenities?: string[];
   directions?: string; mapImageUrl?: string; parkingImageUrl?: string;
+  airbnbIcalUrl?: string; airbnbSyncedAt?: string;
   bedrooms?: number; beds?: number; baths?: number; maxGuests?: number;
   weekdayPriceCents?: number; weekendPriceCents?: number; cleaningFeeCents?: number;
   taxable?: boolean; capacity?: number; blockedRanges?: BlockedRange[];
@@ -89,6 +90,9 @@ export async function adminApprove(id: string): Promise<AdminBooking> {
 export async function adminReject(id: string): Promise<AdminBooking> {
   return (await call(`/api/admin/bookings/${id}/reject`, 'POST')).booking;
 }
+export async function adminDeleteBooking(id: string): Promise<void> {
+  await call(`/api/admin/bookings/${id}`, 'DELETE');
+}
 
 // ---- Units / sites (admin only) ----
 export async function adminGetUnits(): Promise<AdminUnit[]> {
@@ -111,6 +115,12 @@ export async function adminRemoveBlock(id: string, blockId: string): Promise<Adm
 }
 export async function adminWinterClosure(input: { start: string; end: string; unitIds?: string[]; reason?: string }): Promise<{ applied: number; unitIds: string[] }> {
   return await call('/api/admin/units/winter-closure', 'POST', input);
+}
+export async function adminSyncAirbnb(id: string): Promise<{ imported: number; syncedAt?: string; unit: AdminUnit }> {
+  return await call(`/api/admin/units/${id}/sync-airbnb`, 'POST');
+}
+export async function adminSyncAllAirbnb(): Promise<{ units: number; imported: number; errors: string[] }> {
+  return await call('/api/admin/units/sync-airbnb', 'POST');
 }
 
 // ---- Listing photos ----

@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { requireAdmin } from '../middleware/adminAuth';
-import { getAllBookings, getBookingById, updateBookingWithStripeData, updateBookingStatus } from '../storage/bookingsStore';
+import { getAllBookings, getBookingById, updateBookingWithStripeData, updateBookingStatus, saveAllBookings } from '../storage/bookingsStore';
 import { getAllUnits } from '../storage/unitsStore';
 import { getStripe } from '../utils/stripe';
 import { isUnitAvailableForRange, tentSpotsAvailable } from '../utils/availability';
@@ -94,6 +94,37 @@ router.post('/:id/reject', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[ADMIN] reject error', err);
     return res.status(500).json({ error: 'Failed to reject booking' });
+  }
+});
+
+// DELETE /api/admin/bookings/:id — remove a booking entirely (testing cleanup).
+// Best-effort Stripe teardown first: refund a captured payment, or void an
+// uncaptured authorization, so test charges/holds don't linger.
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const booking = await getBookingById(id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+
+    const stripe = getStripe();
+    if (stripe && booking.stripePaymentIntentId) {
+      try {
+        if (booking.status === 'confirmed' || booking.paidAt) {
+          await stripe.refunds.create({ payment_intent: booking.stripePaymentIntentId });
+        } else {
+          await stripe.paymentIntents.cancel(booking.stripePaymentIntentId);
+        }
+      } catch (err: any) {
+        console.error('[ADMIN] delete: stripe cleanup failed', id, err?.message);
+      }
+    }
+
+    const all = await getAllBookings();
+    await saveAllBookings(all.filter(b => b.id !== id));
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[ADMIN] delete booking error', err);
+    return res.status(500).json({ error: 'Failed to delete booking' });
   }
 });
 

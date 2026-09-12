@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 import { Eye, EyeOff, Plus, Trash2, CalendarOff, Pencil, Upload } from 'lucide-react';
 import { clearAdminPassword, getAdminPassword, getRole, getStaffName } from '../lib/adminSession';
 import {
-  adminGetBookings, adminApprove, adminReject,
+  adminGetBookings, adminApprove, adminReject, adminDeleteBooking,
   getCleaningSchedule, getCleaners, addCleaner, deleteCleaner,
   adminGetUnits, adminUpdateUnit, adminAddUnit, adminDeleteUnit, adminAddBlock, adminRemoveBlock, adminWinterClosure,
   adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
+  adminSyncAirbnb,
   AdminBooking, Cleaner, CleaningRow, AdminUnit,
 } from '../lib/adminApi';
 
@@ -104,6 +105,11 @@ export function AdminDashboard({ onNavigate }: Props) {
     setBusyId(id); setError(null);
     try { await adminReject(id); await load(); } catch (e: any) { setError(e?.message || 'Reject failed'); } finally { setBusyId(null); }
   }
+  async function deleteBooking(id: string) {
+    if (!window.confirm('Delete this booking entirely? Any captured test payment is refunded / held authorization is voided. This cannot be undone.')) return;
+    setBusyId(id); setError(null);
+    try { await adminDeleteBooking(id); await load(); } catch (e: any) { setError(e?.message || 'Delete failed'); } finally { setBusyId(null); }
+  }
   async function createCleaner() {
     if (!newCleaner.name.trim() || !newCleaner.password.trim()) { setError('Cleaner needs a name and password.'); return; }
     try { await addCleaner(newCleaner); setNewCleaner({ name: '', phone: '', password: '' }); await load(); }
@@ -178,7 +184,7 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div className="wrs-card" style={{ padding: 0, overflow: 'hidden', marginTop: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead><tr style={{ textAlign: 'left', background: 'var(--wrs-offwhite)' }}>
-                  <th style={{ padding: '10px 12px' }}>Reservation</th><th style={{ padding: '10px 12px' }}>Guest</th><th style={{ padding: '10px 12px' }}>Dates</th><th style={{ padding: '10px 12px' }}>Total</th><th style={{ padding: '10px 12px' }}>Status</th>
+                  <th style={{ padding: '10px 12px' }}>Reservation</th><th style={{ padding: '10px 12px' }}>Guest</th><th style={{ padding: '10px 12px' }}>Dates</th><th style={{ padding: '10px 12px' }}>Total</th><th style={{ padding: '10px 12px' }}>Status</th><th style={{ padding: '10px 12px' }}></th>
                 </tr></thead>
                 <tbody>
                   {bookings.map(b => (
@@ -188,9 +194,12 @@ export function AdminDashboard({ onNavigate }: Props) {
                       <td style={{ padding: '10px 12px' }}>{b.startDate} → {b.endDate}</td>
                       <td style={{ padding: '10px 12px' }}>{money(b.totalCents)}</td>
                       <td style={{ padding: '10px 12px' }}>{pill(b.status)}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <button className="wrs-btn wrs-btn-outline" style={{ padding: '5px 10px', borderColor: '#c0392b', color: '#c0392b' }} disabled={busyId === b.id} onClick={() => deleteBooking(b.id)}>Delete</button>
+                      </td>
                     </tr>
                   ))}
-                  {bookings.length === 0 && <tr><td colSpan={5} style={{ padding: 16 }} className="wrs-muted">No bookings yet.</td></tr>}
+                  {bookings.length === 0 && <tr><td colSpan={6} style={{ padding: 16 }} className="wrs-muted">No bookings yet.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -341,6 +350,22 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   const [showBlockForm, setShowBlockForm] = useState(false);
   const isCottage = unit.unitType === 'cottage';
 
+  const [airbnbUrl, setAirbnbUrl] = useState(unit.airbnbIcalUrl || '');
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const exportUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/units/${unit.id}/calendar.ics`;
+
+  async function syncNow() {
+    setSyncBusy(true); setSyncMsg(null);
+    try {
+      await adminUpdateUnit(unit.id, { airbnbIcalUrl: airbnbUrl.trim() });
+      const r = await adminSyncAirbnb(unit.id);
+      setSyncMsg(`Synced — imported ${r.imported} Airbnb reservation${r.imported === 1 ? '' : 's'}.`);
+      await onSaved();
+    } catch (e: any) { onError(e?.message || 'Airbnb sync failed'); }
+    finally { setSyncBusy(false); }
+  }
+
   const [photos, setPhotos] = useState<string[]>(unit.photos || []);
   const [uploading, setUploading] = useState(0);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -412,6 +437,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         active,
         address: address.trim(),
         directions: directions.trim(),
+        airbnbIcalUrl: airbnbUrl.trim(),
       });
       await onSaved();
     } catch (e: any) { onError(e?.message || 'Could not save site'); }
@@ -550,6 +576,31 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
               </div>
             </div>
           )}
+        </div>
+      )}
+      {unit.unitType !== 'kayak' && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Airbnb calendar sync</div>
+          <div className="wrs-muted" style={{ fontSize: 13, marginBottom: 8 }}>
+            Two-way iCal. Import the WRS export URL into Airbnb (Listing → Availability → Connect calendars), and paste this unit's Airbnb export link below.
+          </div>
+          <div className="wrs-field" style={{ marginBottom: 8 }}>
+            <label className="wrs-label">WRS export URL <span className="wrs-muted" style={{ fontWeight: 400 }}>— import this into Airbnb</span></label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="wrs-input" readOnly value={exportUrl} onFocus={e => e.currentTarget.select()} />
+              <button className="wrs-btn wrs-btn-outline" style={{ padding: '0 14px', whiteSpace: 'nowrap' }} onClick={() => { try { navigator.clipboard?.writeText(exportUrl); setSyncMsg('Export URL copied.'); } catch { /* noop */ } }}>Copy</button>
+            </div>
+          </div>
+          <div className="wrs-field" style={{ marginBottom: 8 }}>
+            <label className="wrs-label">Airbnb calendar URL <span className="wrs-muted" style={{ fontWeight: 400 }}>— paste Airbnb's export link</span></label>
+            <input className="wrs-input" value={airbnbUrl} onChange={e => setAirbnbUrl(e.target.value)} placeholder="https://www.airbnb.com/calendar/ical/….ics" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 14px' }} disabled={syncBusy || !airbnbUrl.trim()} onClick={syncNow}>{syncBusy ? 'Syncing…' : 'Sync now'}</button>
+            {unit.airbnbSyncedAt && <span className="wrs-muted" style={{ fontSize: 13 }}>Last synced {new Date(unit.airbnbSyncedAt).toLocaleString()}</span>}
+            {syncMsg && <span style={{ fontSize: 13, color: 'var(--wrs-green)' }}>{syncMsg}</span>}
+          </div>
+          <div className="wrs-muted" style={{ fontSize: 12, marginTop: 6 }}>Also refreshes automatically every hour. Airbnb's feed can lag a few hours on their side.</div>
         </div>
       )}
     </div>

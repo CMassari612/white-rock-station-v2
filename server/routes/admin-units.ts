@@ -4,6 +4,7 @@ import { requireAdmin } from '../middleware/adminAuth';
 import { getAllUnits, saveAllUnits, addUnit, updateUnit, deleteUnit } from '../storage/unitsStore';
 import { Unit, BlockedRange, UnitType } from '../types/unit';
 import { uploadUnitPhoto, deleteUnitPhoto, isStorageConfigured } from '../utils/supabaseStorage';
+import { syncUnitAirbnb, syncAllAirbnb } from '../utils/airbnbSync';
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -23,7 +24,7 @@ const EDITABLE: (keyof Unit)[] = [
   'description', 'location', 'address', 'photos', 'amenities', 'bedrooms',
   'beds', 'baths', 'maxGuests', 'weekdayPriceCents', 'weekendPriceCents',
   'cleaningFeeCents', 'taxable', 'capacity', 'unitType',
-  'directions', 'mapImageUrl', 'parkingImageUrl',
+  'directions', 'mapImageUrl', 'parkingImageUrl', 'airbnbIcalUrl',
 ];
 
 function sanitizePatch(body: any): Partial<Unit> {
@@ -216,6 +217,33 @@ router.delete('/:id/photos', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[ADMIN units] photo delete failed:', err);
     res.status(500).json({ error: 'Could not remove the photo.' });
+  }
+});
+
+// POST /api/admin/units/:id/sync-airbnb — pull this unit's Airbnb calendar now.
+router.post('/:id/sync-airbnb', async (req: Request, res: Response) => {
+  try {
+    const units = await getAllUnits();
+    const unit = units.find(u => u.id === req.params.id);
+    if (!unit) return res.status(404).json({ error: 'Site not found.' });
+    if (!unit.airbnbIcalUrl) return res.status(400).json({ error: 'No Airbnb calendar URL set for this unit.' });
+    const { imported } = await syncUnitAirbnb(unit);
+    await saveAllUnits(units);
+    res.json({ imported, syncedAt: unit.airbnbSyncedAt, unit });
+  } catch (err: any) {
+    console.error('[ADMIN units] airbnb sync failed:', err);
+    res.status(502).json({ error: err?.message || 'Airbnb sync failed.' });
+  }
+});
+
+// POST /api/admin/units/sync-airbnb — pull every unit's Airbnb calendar now.
+router.post('/sync-airbnb', async (_req: Request, res: Response) => {
+  try {
+    const result = await syncAllAirbnb();
+    res.json(result);
+  } catch (err: any) {
+    console.error('[ADMIN units] airbnb sync-all failed:', err);
+    res.status(502).json({ error: err?.message || 'Airbnb sync failed.' });
   }
 });
 
