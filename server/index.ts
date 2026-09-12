@@ -29,6 +29,26 @@ app.use(express.json());
 
 app.get('/api/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
+// Temporary DB diagnostic — reports whether Postgres is configured and reachable
+// (no secrets leaked). Remove once persistence is confirmed working.
+app.get('/api/db-status', async (_req, res) => {
+  const configured = Boolean(
+    process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL
+  );
+  const host = (process.env.POSTGRES_URL || process.env.DATABASE_URL || '')
+    .replace(/\/\/[^@]*@/, '//***@'); // mask credentials, keep host/port visible
+  if (!configured) {
+    return res.json({ configured: false, ok: false, error: 'No POSTGRES_URL / DATABASE_URL set on this deployment.' });
+  }
+  try {
+    const { readCollection } = await import('./storage/db');
+    const rows = await readCollection<any>('units');
+    return res.json({ configured: true, ok: true, unitsInDb: rows.length, conn: host });
+  } catch (e: any) {
+    return res.json({ configured: true, ok: false, code: e?.code || null, error: String(e?.message || e).slice(0, 300), conn: host });
+  }
+});
+
 app.use('/api/units', unitsRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/booking', bookingRequestRoutes);
