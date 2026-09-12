@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import { requireAdmin } from '../middleware/adminAuth';
-import { getAllBookings, getBookingById, updateBookingWithStripeData, updateBookingStatus, saveAllBookings } from '../storage/bookingsStore';
+import { getAllBookings, getBookingById, updateBookingWithStripeData, updateBookingStatus } from '../storage/bookingsStore';
 import { getAllUnits } from '../storage/unitsStore';
 import { getStripe } from '../utils/stripe';
-import { isUnitAvailableForRange, tentSpotsAvailable, addDaysYMD } from '../utils/availability';
-import { mailGuestApproved, mailGuestDeclined, mailCleaningNotice } from '../utils/mailer';
+import { isUnitAvailableForRange, tentSpotsAvailable } from '../utils/availability';
+import { mailGuestApproved, mailGuestDeclined } from '../utils/mailer';
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -37,7 +37,7 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
     if (booking.unitType === 'tent_site') {
       available = tentSpotsAvailable(booking.startDate, booking.endDate, others, unit?.capacity ?? 0) >= 1;
     } else {
-      available = isUnitAvailableForRange(booking.unitId, booking.startDate, booking.endDate, others, true);
+      available = isUnitAvailableForRange(booking.unitId, booking.startDate, booking.endDate, others, true, unit?.blockedRanges || []);
     }
     if (!available) {
       return res.status(409).json({ error: 'No longer available for those dates. Reject to release the hold.' });
@@ -56,11 +56,6 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
     const updated = await updateBookingWithStripeData(id, { status: 'confirmed', paidAt: new Date().toISOString() });
     const finalBooking = updated || booking;
 
-    // Cleaning notice for cottages (day after checkout)
-    if (finalBooking.unitType === 'cottage' && !finalBooking.cleaningEmailSentAt) {
-      await mailCleaningNotice(finalBooking, addDaysYMD(finalBooking.endDate, 1));
-      await updateBookingWithStripeData(id, { cleaningEmailSentAt: new Date().toISOString() });
-    }
     await mailGuestApproved(finalBooking);
 
     const refreshed = await getBookingById(id);
@@ -93,23 +88,6 @@ router.post('/:id/reject', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[ADMIN] reject error', err);
     return res.status(500).json({ error: 'Failed to reject booking' });
-  }
-});
-
-// PATCH /api/admin/bookings/:id/assign-cleaner { cleanerId }
-router.patch('/:id/assign-cleaner', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { cleanerId } = req.body || {};
-    const booking = await getBookingById(id);
-    if (!booking) return res.status(404).json({ error: 'Booking not found' });
-    const all = await getAllBookings();
-    const target = all.find(b => b.id === id);
-    if (target) { target.assignedCleanerId = cleanerId || undefined; await saveAllBookings(all); }
-    return res.json({ booking: target || booking });
-  } catch (err) {
-    console.error('[ADMIN] assign-cleaner error', err);
-    return res.status(500).json({ error: 'Failed to assign cleaner' });
   }
 });
 

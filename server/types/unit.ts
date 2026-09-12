@@ -6,6 +6,18 @@ export type UnitType = 'cottage' | 'tent_site' | 'kayak';
 // Display grouping on the Cottages page.
 export type UnitGroup = 'Allegheny Shore' | 'Riverview Village';
 
+// A manually-blocked date range on a unit (admin "Airbnb-style" blocking, and
+// the seasonal Winter Closure). Both ends are INCLUSIVE calendar days
+// (YYYY-MM-DD): every day from start through end is unavailable to book.
+export interface BlockedRange {
+  id: string;
+  start: string; // YYYY-MM-DD, inclusive
+  end: string;   // YYYY-MM-DD, inclusive
+  reason?: string; // e.g. "Winter closure", "Owner use", "Maintenance"
+  source?: 'manual' | 'winter'; // where the block came from
+  createdAt?: string;
+}
+
 export interface Unit {
   id: string;
   slug: string; // url-friendly, e.g. "allegheny-shore"
@@ -37,6 +49,12 @@ export interface Unit {
 
   // Primitive camping
   capacity?: number; // total tent sites available in the one primitive area
+
+  // Physical location shown to cleaners (site address / on-site directions).
+  address?: string;
+
+  // Manual admin date blocks (Airbnb-style + Winter Closure).
+  blockedRanges?: BlockedRange[];
 
   createdAt: string; // ISO
   updatedAt: string; // ISO

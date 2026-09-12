@@ -11,8 +11,9 @@ router.get('/by-unit', async (req: Request, res: Response) => {
   try {
     const { unitId, start, end } = req.query as { unitId?: string; start?: string; end?: string };
     if (!unitId || !start || !end) return res.status(400).json({ error: 'Missing unitId, start, end' });
-    const bookings = await getAllBookings();
-    const unavailableDates = getUnitUnavailableDates(unitId, start, end, bookings);
+    const [bookings, units] = await Promise.all([getAllBookings(), getAllUnits()]);
+    const unit = units.find(u => u.id === unitId);
+    const unavailableDates = getUnitUnavailableDates(unitId, start, end, bookings, unit?.blockedRanges || []);
     res.json({ unitId, start, end, unavailableDates });
   } catch (err) {
     console.error('[AVAIL] by-unit failed:', err);

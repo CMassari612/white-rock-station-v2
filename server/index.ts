@@ -8,6 +8,7 @@ import bookingRequestRoutes from './routes/booking-request';
 import stripeRouter from './routes/stripe';
 import stripeWebhookRouter from './routes/stripe-webhook';
 import adminBookingsRoutes from './routes/admin-bookings';
+import adminUnitsRoutes from './routes/admin-units';
 import adminCleanersRoutes from './routes/admin-cleaners';
 import authRoutes from './routes/auth';
 import staffRoutes from './routes/staff';
@@ -34,6 +35,7 @@ app.use('/api/booking', bookingRequestRoutes);
 app.use('/api/stripe', stripeRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/bookings', adminBookingsRoutes);
+app.use('/api/admin/units', adminUnitsRoutes);
 app.use('/api/admin/cleaners', adminCleanersRoutes);
 app.use('/api/staff', staffRoutes);
 

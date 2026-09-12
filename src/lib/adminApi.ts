@@ -23,7 +23,21 @@ export interface AdminBooking {
 }
 
 export interface Cleaner { id: string; name: string; phone: string; password: string; createdAt: string; }
-export interface CleaningRow { id: string; unit: string; checkout: string; cleaning: string; cleanerId: string | null; cleanerName: string | null; }
+// Read-only cleaner view: site + address + checkout date only.
+export interface CleaningRow { id: string; site: string; address: string; checkout: string; }
+
+export interface BlockedRange { id: string; start: string; end: string; reason?: string; source?: 'manual' | 'winter'; createdAt?: string; }
+export interface AdminUnit {
+  id: string; slug: string; name: string;
+  unitType: 'cottage' | 'tent_site' | 'kayak';
+  group?: string; active: boolean; placeholder?: boolean;
+  tagline?: string; shortDescription?: string; description?: string;
+  location?: string; address?: string; photos?: string[]; amenities?: string[];
+  bedrooms?: number; beds?: number; baths?: number; maxGuests?: number;
+  weekdayPriceCents?: number; weekendPriceCents?: number; cleaningFeeCents?: number;
+  taxable?: boolean; capacity?: number; blockedRanges?: BlockedRange[];
+  createdAt: string; updatedAt: string;
+}
 
 function headers() {
   return { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() || '' };
@@ -74,8 +88,28 @@ export async function adminApprove(id: string): Promise<AdminBooking> {
 export async function adminReject(id: string): Promise<AdminBooking> {
   return (await call(`/api/admin/bookings/${id}/reject`, 'POST')).booking;
 }
-export async function adminAssignCleaner(bookingId: string, cleanerId: string | null): Promise<void> {
-  await call(`/api/admin/bookings/${bookingId}/assign-cleaner`, 'PATCH', { cleanerId });
+
+// ---- Units / sites (admin only) ----
+export async function adminGetUnits(): Promise<AdminUnit[]> {
+  return (await call('/api/admin/units')).units as AdminUnit[];
+}
+export async function adminUpdateUnit(id: string, patch: Partial<AdminUnit>): Promise<AdminUnit> {
+  return (await call(`/api/admin/units/${id}`, 'PATCH', patch)).unit;
+}
+export async function adminAddUnit(input: Partial<AdminUnit>): Promise<AdminUnit> {
+  return (await call('/api/admin/units', 'POST', input)).unit;
+}
+export async function adminDeleteUnit(id: string): Promise<void> {
+  await call(`/api/admin/units/${id}`, 'DELETE');
+}
+export async function adminAddBlock(id: string, block: { start: string; end: string; reason?: string }): Promise<AdminUnit> {
+  return (await call(`/api/admin/units/${id}/blocks`, 'POST', block)).unit;
+}
+export async function adminRemoveBlock(id: string, blockId: string): Promise<AdminUnit> {
+  return (await call(`/api/admin/units/${id}/blocks/${blockId}`, 'DELETE')).unit;
+}
+export async function adminWinterClosure(input: { start: string; end: string; unitIds?: string[]; reason?: string }): Promise<{ applied: number; unitIds: string[] }> {
+  return await call('/api/admin/units/winter-closure', 'POST', input);
 }
 
 // Cleaning schedule (admin + cleaner)

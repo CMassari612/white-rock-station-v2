@@ -4,6 +4,7 @@
 // confirmed. Cottages also block one cleaning day after checkout.
 
 import { Booking } from '../types/booking-request';
+import { BlockedRange } from '../types/unit';
 
 const HOLD_STATUSES: Booking['status'][] = ['pending', 'pending_approval', 'confirmed'];
 
@@ -38,16 +39,25 @@ function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: string): b
   return aStart < bEnd && bStart < aEnd;
 }
 
-/** Dates (YYYY-MM-DD) in [start,end) on which a specific unit is already taken. */
-export function getUnitUnavailableDates(unitId: string, start: string, end: string, bookings: Booking[]): string[] {
+/** True if a calendar day falls inside any manual/winter block ([start,end] inclusive). */
+function isDayBlocked(day: string, blocks: BlockedRange[]): boolean {
+  return blocks.some(bl => day >= bl.start && day <= bl.end);
+}
+
+/** Dates (YYYY-MM-DD) in [start,end) on which a specific unit is already taken
+ *  — by an existing booking (incl. cleaning buffer) or a manual/winter block. */
+export function getUnitUnavailableDates(unitId: string, start: string, end: string, bookings: Booking[], blocks: BlockedRange[] = []): string[] {
   const holds = bookings.filter(b => b.unitId === unitId && HOLD_STATUSES.includes(b.status));
   return datesInRange(start, end).filter(day =>
-    holds.some(b => day >= b.startDate && day < blockedEnd(b))
+    isDayBlocked(day, blocks) || holds.some(b => day >= b.startDate && day < blockedEnd(b))
   );
 }
 
-/** True if a specific unit is free for [start,end), accounting for cleaning buffer. */
-export function isUnitAvailableForRange(unitId: string, start: string, end: string, bookings: Booking[], isCottage = true): boolean {
+/** True if a specific unit is free for [start,end), accounting for cleaning
+ *  buffer and any manual/winter date blocks. */
+export function isUnitAvailableForRange(unitId: string, start: string, end: string, bookings: Booking[], isCottage = true, blocks: BlockedRange[] = []): boolean {
+  // Any requested night inside a block makes the range unavailable.
+  if (datesInRange(start, end).some(day => isDayBlocked(day, blocks))) return false;
   const reqEnd = isCottage ? addDaysYMD(end, COTTAGE_CLEANING_DAYS) : end;
   return !bookings.some(
     b => b.unitId === unitId && HOLD_STATUSES.includes(b.status) && overlaps(start, reqEnd, b.startDate, blockedEnd(b))

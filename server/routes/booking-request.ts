@@ -37,7 +37,7 @@ router.post('/', async (req: Request<{}, {}, BookingRequestInput>, res: Response
         return res.status(409).json({ error: 'No tent sites are available for those dates.' });
       }
     } else {
-      if (!isUnitAvailableForRange(unit.id, b.startDate, b.endDate, bookings, true)) {
+      if (!isUnitAvailableForRange(unit.id, b.startDate, b.endDate, bookings, true, unit.blockedRanges || [])) {
         return res.status(409).json({ error: 'That cottage is no longer available for those dates.' });
       }
     }
