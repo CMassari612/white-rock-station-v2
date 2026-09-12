@@ -69,11 +69,14 @@ export function AdminDashboard({ onNavigate }: Props) {
     if (!loadedRef.current) setLoading(true);
     setError(null);
     try {
-      const sched = await getCleaningSchedule();
-      setSchedule(sched);
       if (isAdmin) {
-        const [b, c, u] = await Promise.all([adminGetBookings(), getCleaners(), adminGetUnits()]);
-        setBookings(b); setCleaners(c); setUnits(u);
+        // One round-trip: fetch everything in parallel instead of sequentially.
+        const [sched, b, c, u] = await Promise.all([
+          getCleaningSchedule(), adminGetBookings(), getCleaners(), adminGetUnits(),
+        ]);
+        setSchedule(sched); setBookings(b); setCleaners(c); setUnits(u);
+      } else {
+        setSchedule(await getCleaningSchedule());
       }
       loadedRef.current = true;
     } catch (err: any) {
@@ -141,7 +144,13 @@ export function AdminDashboard({ onNavigate }: Props) {
 
       <div className="wrs-container" style={{ padding: '28px 20px 60px' }}>
         {error && <div className="wrs-note" style={{ borderLeftColor: '#c0392b', marginBottom: 16 }}>{error}</div>}
-        {loading && <p className="wrs-muted">Loading…</p>}
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '90px 0', gap: 14 }}>
+            <style>{`@keyframes wrsspin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ width: 38, height: 38, borderRadius: '50%', border: '3px solid var(--wrs-line)', borderTopColor: 'var(--wrs-green)', animation: 'wrsspin 0.7s linear infinite' }} />
+            <p className="wrs-muted" style={{ margin: 0 }}>Loading your dashboard…</p>
+          </div>
+        )}
 
         {!loading && isAdmin && tab === 'bookings' && (
           <>
