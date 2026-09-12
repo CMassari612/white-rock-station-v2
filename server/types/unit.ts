@@ -53,6 +53,11 @@ export interface Unit {
   // Physical location shown to cleaners (site address / on-site directions).
   address?: string;
 
+  // Arrival info sent in the booking confirmation email (not shown publicly):
+  directions?: string;       // typed, step-by-step directions to this site
+  mapImageUrl?: string;      // a map screenshot for this site
+  parkingImageUrl?: string;  // parking photo with THIS property circled
+
   // Manual admin date blocks (Airbnb-style + Winter Closure).
   blockedRanges?: BlockedRange[];
 

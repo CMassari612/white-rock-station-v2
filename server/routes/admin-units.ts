@@ -23,6 +23,7 @@ const EDITABLE: (keyof Unit)[] = [
   'description', 'location', 'address', 'photos', 'amenities', 'bedrooms',
   'beds', 'baths', 'maxGuests', 'weekdayPriceCents', 'weekendPriceCents',
   'cleaningFeeCents', 'taxable', 'capacity', 'unitType',
+  'directions', 'mapImageUrl', 'parkingImageUrl',
 ];
 
 function sanitizePatch(body: any): Partial<Unit> {
@@ -170,6 +171,32 @@ router.post('/:id/photos', express.raw({ type: ['image/*'], limit: '15mb' }), as
   } catch (err: any) {
     console.error('[ADMIN units] photo upload failed:', err);
     res.status(500).json({ error: err?.message || 'Could not upload the photo.' });
+  }
+});
+
+// POST /api/admin/units/:id/asset?slot=map|parking — upload a single image and
+// store it as the unit's map or parking photo (used in the confirmation email).
+router.post('/:id/asset', express.raw({ type: ['image/*'], limit: '15mb' }), async (req: Request, res: Response) => {
+  try {
+    if (!isStorageConfigured()) {
+      return res.status(503).json({ error: 'Photo storage is not configured yet (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).' });
+    }
+    const slot = String(req.query.slot || '');
+    if (slot !== 'map' && slot !== 'parking') return res.status(400).json({ error: 'slot must be "map" or "parking".' });
+    const buf = req.body as Buffer;
+    if (!buf || !buf.length) return res.status(400).json({ error: 'No image data received.' });
+    const units = await getAllUnits();
+    const unit = units.find(u => u.id === req.params.id);
+    if (!unit) return res.status(404).json({ error: 'Site not found.' });
+
+    const url = await uploadUnitPhoto(unit.id, buf, req.get('content-type') || 'image/jpeg');
+    if (slot === 'map') unit.mapImageUrl = url; else unit.parkingImageUrl = url;
+    unit.updatedAt = new Date().toISOString();
+    await saveAllUnits(units);
+    res.status(201).json({ unit, url });
+  } catch (err: any) {
+    console.error('[ADMIN units] asset upload failed:', err);
+    res.status(500).json({ error: err?.message || 'Could not upload the image.' });
   }
 });
 

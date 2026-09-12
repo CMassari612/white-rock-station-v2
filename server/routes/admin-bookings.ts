@@ -56,9 +56,13 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
     const updated = await updateBookingWithStripeData(id, { status: 'confirmed', paidAt: new Date().toISOString() });
     const finalBooking = updated || booking;
 
-    // Include the site address in the confirmation email (not shown publicly).
-    const siteAddress = unit?.address || '395 Silvis Hollow Rd, Kittanning, PA 16201';
-    await mailGuestApproved(finalBooking, siteAddress);
+    // Include the site's arrival info in the confirmation email (not shown publicly).
+    await mailGuestApproved(finalBooking, {
+      address: unit?.address || '395 Silvis Hollow Rd, Kittanning, PA 16201',
+      directions: unit?.directions,
+      mapImageUrl: unit?.mapImageUrl,
+      parkingImageUrl: unit?.parkingImageUrl,
+    });
 
     const refreshed = await getBookingById(id);
     return res.json({ booking: refreshed || finalBooking });

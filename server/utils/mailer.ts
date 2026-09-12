@@ -53,15 +53,32 @@ export async function mailAdminApprovalNeeded(b: Booking): Promise<void> {
   );
 }
 
-export async function mailGuestApproved(b: Booking, address?: string): Promise<void> {
-  const addr = (address || '').trim();
+export interface ArrivalInfo {
+  address?: string;
+  directions?: string;
+  mapImageUrl?: string;
+  parkingImageUrl?: string;
+}
+
+export async function mailGuestApproved(b: Booking, arrival: ArrivalInfo = {}): Promise<void> {
+  const addr = (arrival.address || '').trim();
+  const dir = (arrival.directions || '').trim();
+  const map = (arrival.mapImageUrl || '').trim();
+  const parking = (arrival.parkingImageUrl || '').trim();
+
   const addrHtml = addr ? `<p><b>Address:</b> ${addr}</p>` : '';
+  const dirHtml = dir ? `<p><b>Getting here:</b><br>${dir.replace(/\n/g, '<br>')}</p>` : '';
+  const mapHtml = map ? `<p><b>Map</b><br><a href="${map}"><img src="${map}" alt="Map to your site" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
+  const parkHtml = parking ? `<p><b>Parking</b> — your cabin is circled:<br><a href="${parking}"><img src="${parking}" alt="Parking — your cabin is circled" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
+
   const addrText = addr ? ` Address: ${addr}.` : '';
+  const dirText = dir ? ` Getting here: ${dir}.` : '';
+
   await send(
     b.email,
     'Your White Rock Station booking is confirmed',
-    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p><p>See you on the river!<br>White Rock Station</p>`,
-    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.`
+    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p>${dirHtml}${mapHtml}${parkHtml}<p>See you on the river!<br>White Rock Station</p>`,
+    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.${dirText}`
   );
 }
 

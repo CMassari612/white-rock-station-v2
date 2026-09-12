@@ -6,7 +6,7 @@ import {
   adminGetBookings, adminApprove, adminReject,
   getCleaningSchedule, getCleaners, addCleaner, deleteCleaner,
   adminGetUnits, adminUpdateUnit, adminAddUnit, adminDeleteUnit, adminAddBlock, adminRemoveBlock, adminWinterClosure,
-  adminUploadPhoto, adminDeletePhoto, adminReorderPhotos,
+  adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
   AdminBooking, Cleaner, CleaningRow, AdminUnit,
 } from '../lib/adminApi';
 
@@ -344,6 +344,32 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   const [uploading, setUploading] = useState(0);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
+  const [directions, setDirections] = useState(unit.directions || '');
+  const [mapUrl, setMapUrl] = useState(unit.mapImageUrl || '');
+  const [parkingUrl, setParkingUrl] = useState(unit.parkingImageUrl || '');
+  const [assetBusy, setAssetBusy] = useState<'map' | 'parking' | null>(null);
+
+  async function onAsset(slot: 'map' | 'parking', files: FileList | null) {
+    const file = files && files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setAssetBusy(slot);
+    try {
+      const blob = await optimizeImage(file, 2400, 0.85);
+      const updated = await adminUploadAsset(unit.id, slot, blob);
+      if (slot === 'map') setMapUrl(updated.mapImageUrl || '');
+      else setParkingUrl(updated.parkingImageUrl || '');
+      await onSaved();
+    } catch (e: any) { onError(e?.message || 'Upload failed'); }
+    finally { setAssetBusy(null); }
+  }
+  async function clearAsset(slot: 'map' | 'parking') {
+    try {
+      await adminUpdateUnit(unit.id, slot === 'map' ? { mapImageUrl: '' } : { parkingImageUrl: '' });
+      if (slot === 'map') setMapUrl(''); else setParkingUrl('');
+      await onSaved();
+    } catch (e: any) { onError(e?.message || 'Could not remove image'); }
+  }
+
   async function onFiles(files: FileList | null) {
     if (!files || !files.length) return;
     for (const file of Array.from(files)) {
@@ -384,6 +410,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         maxGuests: Math.max(1, Math.trunc(Number(guests) || 1)),
         active,
         address: address.trim(),
+        directions: directions.trim(),
       });
       await onSaved();
     } catch (e: any) { onError(e?.message || 'Could not save site'); }
@@ -423,6 +450,47 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
         <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', borderColor: '#c0392b', color: '#c0392b', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={removeSite}><Trash2 size={15} /> Delete site</button>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>
+          Directions &amp; arrival <span className="wrs-muted" style={{ fontWeight: 400 }}>· sent in the confirmation email, not shown publicly</span>
+        </div>
+        <div className="wrs-field" style={{ marginBottom: 10 }}>
+          <label className="wrs-label">Typed directions</label>
+          <textarea className="wrs-input" rows={4} value={directions} onChange={e => setDirections(e.target.value)} placeholder="Turn-by-turn directions to this site (the campground can be hard to find)…" />
+          <div className="wrs-muted" style={{ fontSize: 12, marginTop: 4 }}>Saved with “Save changes” above.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Map image</div>
+            {mapUrl ? (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
+                <img src={encodeURI(mapUrl)} alt="Map" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button aria-label="Remove map" onClick={() => clearAsset('map')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
+                <Upload size={18} />{assetBusy === 'map' ? 'Uploading…' : 'Upload map'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('map', e.target.files); e.currentTarget.value = ''; }} />
+              </label>
+            )}
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Parking image <span className="wrs-muted" style={{ fontWeight: 400 }}>· circle THIS site</span></div>
+            {parkingUrl ? (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
+                <img src={encodeURI(parkingUrl)} alt="Parking" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button aria-label="Remove parking" onClick={() => clearAsset('parking')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
+                <Upload size={18} />{assetBusy === 'parking' ? 'Uploading…' : 'Upload parking'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('parking', e.target.files); e.currentTarget.value = ''; }} />
+              </label>
+            )}
+          </div>
+        </div>
       </div>
 
       <div style={{ marginTop: 18 }}>
