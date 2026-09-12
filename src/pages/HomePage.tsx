@@ -28,7 +28,7 @@ export function HomePage({ onNavigate }: Props) {
           </p>
           <div className="wrs-hero__cta">
             <button className="wrs-btn wrs-btn-primary" onClick={() => onNavigate('cottages')}>Explore Cottages</button>
-            <button className="wrs-btn wrs-btn-ghost" onClick={() => onNavigate('camping')}>Primitive Camping</button>
+            <button className="wrs-btn wrs-btn-ghost" onClick={() => onNavigate('trail')}>Armstrong Trail</button>
           </div>
         </div>
       </section>
@@ -38,9 +38,8 @@ export function HomePage({ onNavigate }: Props) {
         <div className="wrs-container">
           <div className="wrs-features">
             <div className="wrs-feature"><div className="wrs-feature__icon"><Home size={24} strokeWidth={1.75} /></div><h3 className="wrs-h3">Riverfront Cottages</h3><p className="wrs-muted">Fully-equipped cottages with full kitchens and river views.</p></div>
-            <div className="wrs-feature"><div className="wrs-feature__icon"><Tent size={24} strokeWidth={1.75} /></div><h3 className="wrs-h3">Primitive Camping</h3><p className="wrs-muted">Simple, quiet tent sites right along the water.</p></div>
             <div className="wrs-feature"><div className="wrs-feature__icon"><Bike size={24} strokeWidth={1.75} /></div><h3 className="wrs-h3">Armstrong Trail</h3><p className="wrs-muted">Step right onto one of PA's favorite rail-trails.</p></div>
-            <div className="wrs-feature"><div className="wrs-feature__icon"><Waves size={24} strokeWidth={1.75} /></div><h3 className="wrs-h3">Kayaks Coming Soon</h3><p className="wrs-muted">Paddle the Allegheny — rentals launching soon.</p></div>
+            <div className="wrs-feature"><div className="wrs-feature__icon"><Waves size={24} strokeWidth={1.75} /></div><h3 className="wrs-h3">River Access</h3><p className="wrs-muted">Direct access to the Allegheny right from your cottage.</p></div>
           </div>
         </div>
       </section>

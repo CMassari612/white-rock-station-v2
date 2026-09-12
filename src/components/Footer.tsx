@@ -18,7 +18,7 @@ export function Footer({ onNavigate }: FooterProps) {
             />
             <p className="text-[var(--sand-tan)] text-sm tracking-wide mb-4">Riverfront Resort &amp; Marina</p>
             <p className="text-white/80 text-sm leading-relaxed">
-              Riverfront cottages, primitive camping, and river access along the Armstrong Trail. Your riverside escape awaits.
+              Riverfront cottages and river access along the Armstrong Trail. Your riverside escape awaits.
             </p>
             {/* Hidden staff shortcut: invisible button that opens the admin login.
                 Size is set via inline styles (no Tailwind compiler) so the empty
@@ -49,9 +49,6 @@ export function Footer({ onNavigate }: FooterProps) {
               </button>
               <button onClick={() => onNavigate('cottages')} className="text-white/80 hover:text-white text-left text-sm">
                 Cottages
-              </button>
-              <button onClick={() => onNavigate('camping')} className="text-white/80 hover:text-white text-left text-sm">
-                Camping
               </button>
               <button onClick={() => onNavigate('trail')} className="text-white/80 hover:text-white text-left text-sm">
                 Armstrong Trail

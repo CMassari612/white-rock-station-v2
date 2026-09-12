@@ -288,54 +288,5 @@
     "weekdayPriceCents": 17900,
     "weekendPriceCents": 21900,
     "cleaningFeeCents": 6000
-  },
-  {
-    "id": "primitive-camping",
-    "slug": "primitive-camping",
-    "name": "Primitive Tent Camping",
-    "unitType": "tent_site",
-    "active": true,
-    "taxable": false,
-    "tagline": "Riverside primitive tent sites",
-    "location": "Riverside",
-    "shortDescription": "Simple, back-to-nature tent camping along the river. No hookups — just you and the outdoors.",
-    "description": "Pitch a tent along the Allegheny at our primitive camping area. Bring your gear and enjoy fire rings, river access, and a quiet riverside setting. No electric or water hookups — true primitive camping.",
-    "maxGuests": 6,
-    "capacity": 10,
-    "amenities": [
-      "Fire Ring",
-      "River Access",
-      "Vault Toilet",
-      "Free Parking"
-    ],
-    "photos": [
-      "/images/scenery/Scenery 01.jpg",
-      "/images/scenery/Scenery 05.jpg",
-      "/images/scenery/Scenery 12.jpg"
-    ],
-    "weekdayPriceCents": 3500,
-    "weekendPriceCents": 3500,
-    "cleaningFeeCents": 0,
-    "createdAt": "2026-09-05T18:42:20.258Z",
-    "updatedAt": "2026-09-05T18:42:20.258Z"
-  },
-  {
-    "id": "kayak-rentals",
-    "slug": "kayak-rentals",
-    "name": "Kayak Rentals",
-    "unitType": "kayak",
-    "active": true,
-    "placeholder": true,
-    "taxable": false,
-    "tagline": "Coming soon",
-    "location": "On the river",
-    "shortDescription": "Kayak rentals are coming soon to White Rock Station.",
-    "description": "We’re getting our kayak fleet ready. Soon you’ll be able to reserve and pay online, sign your waiver, and launch right from the property. Check back soon!",
-    "photos": [
-      "/images/scenery/Scenery 18.jpg",
-      "/images/scenery/Scenery 22.jpg"
-    ],
-    "createdAt": "2026-09-05T18:42:20.258Z",
-    "updatedAt": "2026-09-05T18:42:20.258Z"
   }
 ]

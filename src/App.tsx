@@ -4,8 +4,6 @@ import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { CottagesPage } from './pages/CottagesPage';
 import { CottageDetailPage } from './pages/CottageDetailPage';
-import { CampingPage } from './pages/CampingPage';
-import { KayakPage } from './pages/KayakPage';
 import { BookingPage } from './pages/BookingPage';
 import { BookingSuccessPage } from './pages/BookingSuccessPage';
 import { BookingCancelPage } from './pages/BookingCancelPage';
@@ -17,13 +15,13 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { getAdminPassword } from './lib/adminSession';
 
 type PageType =
-  | 'home' | 'cottages' | 'cottage-detail' | 'camping' | 'kayak'
+  | 'home' | 'cottages' | 'cottage-detail'
   | 'booking' | 'booking-success' | 'booking-cancel'
   | 'trail' | 'amenities' | 'contact'
   | 'admin-login' | 'admin';
 
 const PATHS: Record<PageType, string> = {
-  home: '/', cottages: '/cottages', 'cottage-detail': '/cottages', camping: '/camping', kayak: '/kayaks',
+  home: '/', cottages: '/cottages', 'cottage-detail': '/cottages',
   booking: '/book', 'booking-success': '/booking/success', 'booking-cancel': '/booking/cancel',
   trail: '/trail', amenities: '/amenities', contact: '/contact',
   'admin-login': '/admin/login', admin: '/admin',
@@ -44,8 +42,6 @@ export default function App() {
     if (path.startsWith('/book')) return setCurrentPage('booking');
     if (path.startsWith('/cottages/')) { setSlug(decodeURIComponent(path.split('/cottages/')[1] || '')); return setCurrentPage('cottage-detail'); }
     if (path.startsWith('/cottages')) return setCurrentPage('cottages');
-    if (path.startsWith('/camping')) return setCurrentPage('camping');
-    if (path.startsWith('/kayak')) return setCurrentPage('kayak');
     if (path.startsWith('/trail')) return setCurrentPage('trail');
     if (path.startsWith('/amenities')) return setCurrentPage('amenities');
     if (path.startsWith('/contact')) return setCurrentPage('contact');
@@ -79,8 +75,6 @@ export default function App() {
       case 'home': return <HomePage onNavigate={handleNavigate} />;
       case 'cottages': return <CottagesPage onNavigate={handleNavigate} />;
       case 'cottage-detail': return <CottageDetailPage slug={slug} onNavigate={handleNavigate} />;
-      case 'camping': return <CampingPage onNavigate={handleNavigate} />;
-      case 'kayak': return <KayakPage onNavigate={handleNavigate} />;
       case 'booking': return <BookingPage onNavigate={handleNavigate} />;
       case 'booking-success': return <BookingSuccessPage onNavigate={handleNavigate} />;
       case 'booking-cancel': return <BookingCancelPage onNavigate={handleNavigate} />;
