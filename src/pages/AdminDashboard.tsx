@@ -203,7 +203,7 @@ export function AdminDashboard({ onNavigate }: Props) {
               <h2 className="wrs-h3" style={{ margin: 0 }}>Sites ({units.length})</h2>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setShowWinter(true)}><CalendarOff size={16} /> Winter Closure</button>
-                <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 14px', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAddSite(true)}><Plus size={16} /> Add Site</button>
+                <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 14px', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setShowAddSite(true)}><Plus size={16} /> Add Unit</button>
               </div>
             </div>
             <p className="wrs-muted" style={{ marginTop: 6 }}>Edit pricing, occupancy, and blocked dates per site. Blocks and price changes go live immediately.</p>
@@ -338,6 +338,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   const [bStart, setBStart] = useState('');
   const [bEnd, setBEnd] = useState('');
   const [bReason, setBReason] = useState('');
+  const [showBlockForm, setShowBlockForm] = useState(false);
   const isCottage = unit.unitType === 'cottage';
 
   const [photos, setPhotos] = useState<string[]>(unit.photos || []);
@@ -418,7 +419,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   }
   async function addBlock() {
     if (!bStart || !bEnd) { onError('Pick a start and end date to block.'); return; }
-    try { await adminAddBlock(unit.id, { start: bStart, end: bEnd, reason: bReason }); setBStart(''); setBEnd(''); setBReason(''); await onSaved(); }
+    try { await adminAddBlock(unit.id, { start: bStart, end: bEnd, reason: bReason }); setBStart(''); setBEnd(''); setBReason(''); setShowBlockForm(false); await onSaved(); }
     catch (e: any) { onError(e?.message || 'Could not add block'); }
   }
   async function removeBlock(blockId: string) {
@@ -449,48 +450,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
 
       <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
-        <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', borderColor: '#c0392b', color: '#c0392b', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={removeSite}><Trash2 size={15} /> Delete site</button>
-      </div>
-
-      <div style={{ marginTop: 18 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>
-          Directions &amp; arrival <span className="wrs-muted" style={{ fontWeight: 400 }}>· sent in the confirmation email, not shown publicly</span>
-        </div>
-        <div className="wrs-field" style={{ marginBottom: 10 }}>
-          <label className="wrs-label">Typed directions</label>
-          <textarea className="wrs-input" rows={4} value={directions} onChange={e => setDirections(e.target.value)} placeholder="Turn-by-turn directions to this site (the campground can be hard to find)…" />
-          <div className="wrs-muted" style={{ fontSize: 12, marginTop: 4 }}>Saved with “Save changes” above.</div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Map image</div>
-            {mapUrl ? (
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
-                <img src={encodeURI(mapUrl)} alt="Map" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button aria-label="Remove map" onClick={() => clearAsset('map')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
-              </div>
-            ) : (
-              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
-                <Upload size={18} />{assetBusy === 'map' ? 'Uploading…' : 'Upload map'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('map', e.target.files); e.currentTarget.value = ''; }} />
-              </label>
-            )}
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Parking image <span className="wrs-muted" style={{ fontWeight: 400 }}>· circle THIS site</span></div>
-            {parkingUrl ? (
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
-                <img src={encodeURI(parkingUrl)} alt="Parking" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <button aria-label="Remove parking" onClick={() => clearAsset('parking')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
-              </div>
-            ) : (
-              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
-                <Upload size={18} />{assetBusy === 'parking' ? 'Uploading…' : 'Upload parking'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('parking', e.target.files); e.currentTarget.value = ''; }} />
-              </label>
-            )}
-          </div>
-        </div>
+        <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', borderColor: '#c0392b', color: '#c0392b', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={removeSite}><Trash2 size={15} /> Delete unit</button>
       </div>
 
       <div style={{ marginTop: 18 }}>
@@ -520,6 +480,47 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         </div>
       </div>
 
+      <div style={{ marginTop: 18 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>
+          Directions &amp; arrival <span className="wrs-muted" style={{ fontWeight: 400 }}>· sent in the confirmation email, not shown publicly</span>
+        </div>
+        <div className="wrs-field" style={{ marginBottom: 10 }}>
+          <label className="wrs-label">Typed directions</label>
+          <textarea className="wrs-input" rows={4} value={directions} onChange={e => setDirections(e.target.value)} placeholder="Turn-by-turn directions to this unit (the campground can be hard to find)…" />
+          <div className="wrs-muted" style={{ fontSize: 12, marginTop: 4 }}>Saved with “Save changes” above.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Map image</div>
+            {mapUrl ? (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
+                <img src={encodeURI(mapUrl)} alt="Map" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button aria-label="Remove map" onClick={() => clearAsset('map')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
+                <Upload size={18} />{assetBusy === 'map' ? 'Uploading…' : 'Upload map'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('map', e.target.files); e.currentTarget.value = ''; }} />
+              </label>
+            )}
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Parking image <span className="wrs-muted" style={{ fontWeight: 400 }}>· circle THIS unit</span></div>
+            {parkingUrl ? (
+              <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--wrs-line)' }}>
+                <img src={encodeURI(parkingUrl)} alt="Parking" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button aria-label="Remove parking" onClick={() => clearAsset('parking')} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', color: '#fff', border: 'none', borderRadius: 999, width: 24, height: 24, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', aspectRatio: '4 / 3', borderRadius: 8, border: '2px dashed var(--wrs-line)', cursor: 'pointer', color: 'var(--wrs-muted)', fontSize: 13 }}>
+                <Upload size={18} />{assetBusy === 'parking' ? 'Uploading…' : 'Upload parking'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onAsset('parking', e.target.files); e.currentTarget.value = ''; }} />
+              </label>
+            )}
+          </div>
+        </div>
+      </div>
+
       {unit.unitType !== 'kayak' && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Blocked dates</div>
@@ -532,12 +533,23 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
               </div>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'end', marginTop: 10 }}>
-            <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">From</label><input className="wrs-input" type="date" value={bStart} onChange={e => setBStart(e.target.value)} /></div>
-            <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">To</label><input className="wrs-input" type="date" value={bEnd} onChange={e => setBEnd(e.target.value)} /></div>
-            <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Reason (optional)</label><input className="wrs-input" value={bReason} onChange={e => setBReason(e.target.value)} placeholder="Owner use" /></div>
-            <button className="wrs-btn wrs-btn-outline" style={{ padding: '11px 14px' }} onClick={addBlock}>Block</button>
-          </div>
+          {!showBlockForm ? (
+            <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => setShowBlockForm(true)}>
+              <CalendarOff size={15} /> Block dates
+            </button>
+          ) : (
+            <div style={{ marginTop: 10, border: '1px solid var(--wrs-line)', borderRadius: 8, padding: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">From</label><input className="wrs-input" type="date" value={bStart} onChange={e => setBStart(e.target.value)} /></div>
+                <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">To</label><input className="wrs-input" type="date" value={bEnd} onChange={e => setBEnd(e.target.value)} /></div>
+              </div>
+              <div className="wrs-field" style={{ marginTop: 8, marginBottom: 0 }}><label className="wrs-label">Reason (optional)</label><input className="wrs-input" value={bReason} onChange={e => setBReason(e.target.value)} placeholder="Owner use" /></div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+                <button className="wrs-btn wrs-btn-ghost" style={{ padding: '9px 14px' }} onClick={() => { setShowBlockForm(false); setBStart(''); setBEnd(''); setBReason(''); }}>Cancel</button>
+                <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 14px' }} onClick={addBlock}>Block</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -614,7 +626,7 @@ function AddSiteModal({ onClose, onDone, onError }: { onClose: () => void; onDon
   }
 
   return (
-    <Modal title="Add Site" onClose={onClose}>
+    <Modal title="Add Unit" onClose={onClose}>
       <div className="wrs-field"><label className="wrs-label">Site name</label><input className="wrs-input" value={name} onChange={e => setName(e.target.value)} placeholder="New Cottage" /></div>
       <div className="wrs-field"><label className="wrs-label">Type</label>
         <select className="wrs-select" value={unitType} onChange={e => setUnitType(e.target.value as any)}>
@@ -631,7 +643,7 @@ function AddSiteModal({ onClose, onDone, onError }: { onClose: () => void; onDon
       <p className="wrs-muted" style={{ fontSize: 13 }}>You can add photos, description, and amenities after creating the site.</p>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
         <button className="wrs-btn wrs-btn-ghost" style={{ padding: '9px 16px' }} onClick={onClose}>Cancel</button>
-        <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={busy} onClick={create}>{busy ? 'Creating…' : 'Create site'}</button>
+        <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={busy} onClick={create}>{busy ? 'Creating…' : 'Create unit'}</button>
       </div>
     </Modal>
   );
