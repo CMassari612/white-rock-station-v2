@@ -88,6 +88,7 @@ export function AdminDashboard({ onNavigate }: Props) {
   }
 
   const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval' || b.status === 'pending'), [bookings]);
+  const editingUnit = units.find(u => u.id === editingId) || null;
   const pill = (s: string) => <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: STATUS_COLORS[s] || '#777', padding: '2px 9px', borderRadius: 999 }}>{s.replace('_', ' ')}</span>;
   const tabBtn = (id: Tab, label: string) => (
     <button onClick={() => setTab(id)} style={{ background: 'none', border: 'none', color: tab === id ? '#fff' : 'rgba(255,255,255,.7)', cursor: 'pointer', fontWeight: 700, textDecoration: tab === id ? 'underline' : 'none' }}>{label}</button>
@@ -192,8 +193,8 @@ export function AdminDashboard({ onNavigate }: Props) {
                         </div>
                       </div>
                     </div>
-                    <button className="wrs-btn wrs-btn-outline" style={{ padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, flexShrink: 0 }} onClick={() => setEditingId(editingId === u.id ? null : u.id)}>
-                      <Pencil size={14} /> {editingId === u.id ? 'Close' : 'Edit'}
+                    <button className="wrs-btn wrs-btn-outline" style={{ padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, flexShrink: 0 }} onClick={() => setEditingId(u.id)}>
+                      <Pencil size={14} /> Edit
                     </button>
                   </div>
                   {u.unitType !== 'kayak' && (
@@ -203,16 +204,14 @@ export function AdminDashboard({ onNavigate }: Props) {
                       {(u.blockedRanges?.length || 0) > 0 && <span className="wrs-muted"> · {u.blockedRanges!.length} block(s)</span>}
                     </div>
                   )}
-                  {editingId === u.id && (
-                    <SiteEditor
-                      unit={u}
-                      onSaved={load}
-                      onError={setError}
-                    />
-                  )}
                 </div>
               ))}
             </div>
+            {editingUnit && (
+              <Modal title={`Edit — ${editingUnit.name}`} maxWidth={780} onClose={() => setEditingId(null)}>
+                <SiteEditor unit={editingUnit} onSaved={load} onError={setError} />
+              </Modal>
+            )}
           </>
         )}
 
@@ -331,9 +330,13 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   async function removeBlock(blockId: string) {
     try { await adminRemoveBlock(unit.id, blockId); await onSaved(); } catch (e: any) { onError(e?.message || 'Could not remove block'); }
   }
+  async function removeSite() {
+    if (!window.confirm(`Delete "${unit.name}"? This removes the listing entirely. Existing bookings are not affected.`)) return;
+    try { await adminDeleteUnit(unit.id); await onSaved(); } catch (e: any) { onError(e?.message || 'Could not delete site'); }
+  }
 
   return (
-    <div style={{ marginTop: 14, borderTop: '1px solid var(--wrs-line)', paddingTop: 14 }}>
+    <div>
       {unit.unitType !== 'kayak' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Weekday price ($/night)</label><input className="wrs-input" type="number" min={0} value={wk} onChange={e => setWk(e.target.value)} /></div>
@@ -350,8 +353,9 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> Visible &amp; bookable on the public site
       </label>
 
-      <div style={{ marginTop: 8 }}>
+      <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <button className="wrs-btn wrs-btn-green" style={{ padding: '9px 16px' }} disabled={saving} onClick={save}>{saving ? 'Saving…' : 'Save changes'}</button>
+        <button className="wrs-btn wrs-btn-outline" style={{ padding: '9px 14px', borderColor: '#c0392b', color: '#c0392b', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={removeSite}><Trash2 size={15} /> Delete site</button>
       </div>
 
       {unit.unitType !== 'kayak' && (
@@ -472,13 +476,25 @@ function AddSiteModal({ onClose, onDone, onError }: { onClose: () => void; onDon
 }
 
 // ---- Lightweight modal ----
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Modal({ title, onClose, children, maxWidth = 520 }: { title: string; onClose: () => void; children: ReactNode; maxWidth?: number }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 100 }}>
-      <div onClick={e => e.stopPropagation()} className="wrs-card" style={{ width: '100%', maxWidth: 520, padding: 20, maxHeight: '90vh', overflow: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(20,28,24,.5)',
+        backdropFilter: 'blur(7px)', WebkitBackdropFilter: 'blur(7px)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '5vh 16px', zIndex: 100, overflowY: 'auto',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="wrs-card"
+        style={{ width: '100%', maxWidth, padding: 24, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.35)' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h3 className="wrs-h3" style={{ margin: 0 }}>{title}</h3>
-          <button aria-label="Close" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, color: 'var(--wrs-muted)' }}>×</button>
+          <button aria-label="Close" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 26, lineHeight: 1, color: 'var(--wrs-muted)' }}>×</button>
         </div>
         {children}
       </div>
