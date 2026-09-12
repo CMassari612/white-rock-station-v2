@@ -97,4 +97,38 @@ router.post('/:id/reject', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/admin/bookings/mail-status?to=email — temporary SMTP diagnostic.
+// Reports which SMTP env vars are present, whether the transport verifies
+// (connection + auth), and whether a test send succeeds — with the real error.
+router.get('/mail-status', async (req: Request, res: Response) => {
+  const to = String(req.query.to || process.env.EMAIL_FROM || process.env.SMTP_USER || '');
+  const cfg = {
+    SMTP_HOST: process.env.SMTP_HOST || null,
+    SMTP_PORT: process.env.SMTP_PORT || null,
+    SMTP_USER: process.env.SMTP_USER ? '(set)' : null,
+    SMTP_PASS: process.env.SMTP_PASS ? '(set)' : null,
+    EMAIL_FROM: process.env.EMAIL_FROM || null,
+  };
+  try {
+    const nodemailer = (await import('nodemailer')).default;
+    const port = Number(process.env.SMTP_PORT);
+    const t = nodemailer.createTransport({
+      host: process.env.SMTP_HOST, port, secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    let verifyOk = false, verifyErr: string | null = null;
+    try { await t.verify(); verifyOk = true; } catch (e: any) { verifyErr = String(e?.message || e).slice(0, 240); }
+    let sendOk = false, sendErr: string | null = null;
+    if (to) {
+      try {
+        await t.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to, subject: 'White Rock Station — mail test', text: 'SMTP diagnostic test. If you received this, email sending works.' });
+        sendOk = true;
+      } catch (e: any) { sendErr = String(e?.message || e).slice(0, 240); }
+    }
+    res.json({ cfg, verifyOk, verifyErr, sendOk, sendErr, to });
+  } catch (e: any) {
+    res.json({ cfg, error: String(e?.message || e).slice(0, 240) });
+  }
+});
+
 export default router;
