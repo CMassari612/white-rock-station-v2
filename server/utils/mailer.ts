@@ -53,12 +53,15 @@ export async function mailAdminApprovalNeeded(b: Booking): Promise<void> {
   );
 }
 
-export async function mailGuestApproved(b: Booking): Promise<void> {
+export async function mailGuestApproved(b: Booking, address?: string): Promise<void> {
+  const addr = (address || '').trim();
+  const addrHtml = addr ? `<p><b>Address:</b> ${addr}</p>` : '';
+  const addrText = addr ? ` Address: ${addr}.` : '';
   await send(
     b.email,
     'Your White Rock Station booking is confirmed',
-    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p><p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p><p>See you on the river!<br>White Rock Station</p>`,
-    `You're booked, ${b.name}! Confirmed: ${stay(b)}. Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.`
+    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p><p>See you on the river!<br>White Rock Station</p>`,
+    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.`
   );
 }
 

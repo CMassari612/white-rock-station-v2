@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Eye, EyeOff, Plus, Trash2, CalendarOff, Pencil, Upload } from 'lucide-react';
 import { clearAdminPassword, getAdminPassword, getRole, getStaffName } from '../lib/adminSession';
@@ -50,6 +50,7 @@ export function AdminDashboard({ onNavigate }: Props) {
   const [schedule, setSchedule] = useState<CleaningRow[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadedRef = useRef(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +64,10 @@ export function AdminDashboard({ onNavigate }: Props) {
   const [showAddSite, setShowAddSite] = useState(false);
 
   async function load() {
-    setLoading(true); setError(null);
+    // Only blank the screen on the very first load. Later refreshes (after every
+    // edit/upload/block) update the data in place so the page never flashes.
+    if (!loadedRef.current) setLoading(true);
+    setError(null);
     try {
       const sched = await getCleaningSchedule();
       setSchedule(sched);
@@ -71,6 +75,7 @@ export function AdminDashboard({ onNavigate }: Props) {
         const [b, c, u] = await Promise.all([adminGetBookings(), getCleaners(), adminGetUnits()]);
         setBookings(b); setCleaners(c); setUnits(u);
       }
+      loadedRef.current = true;
     } catch (err: any) {
       if (err?.status === 401) { clearAdminPassword(); onNavigate('admin-login'); return; }
       setError(err?.message || 'Failed to load');
