@@ -1,6 +1,6 @@
 interface StatCardProps {
-  value: string;
-  label: string;
+  value: React.ReactNode;
+  label: React.ReactNode;
   icon?: React.ReactNode;
 }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
+import { Ed } from '../lib/siteText';
 
 interface NavigationProps {
   currentPage: string;
@@ -21,12 +22,12 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   }, []);
 
   const navItems = [
-    { label: 'Home', page: 'home' },
-    { label: 'Cottages', page: 'cottages' },
-    { label: 'Armstrong Trails', page: 'trail' },
-    { label: 'Amenities', page: 'amenities' },
-    { label: 'Store', page: 'store' },
-    { label: 'About & Contact', page: 'contact' },
+    { label: 'Home', page: 'home', id: 'nav.home' },
+    { label: 'Cottages', page: 'cottages', id: 'nav.cottages' },
+    { label: 'Armstrong Trails', page: 'trail', id: 'nav.trail' },
+    { label: 'Amenities', page: 'amenities', id: 'nav.amenities' },
+    { label: 'Store', page: 'store', id: 'nav.store' },
+    { label: 'About & Contact', page: 'contact', id: 'nav.contact' },
   ];
 
   return (
@@ -62,14 +63,14 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                   currentPage === item.page ? 'text-[var(--sand-tan)]' : ''
                 }`}
               >
-                {item.label}
+                <Ed as="span" id={item.id}>{item.label}</Ed>
               </button>
             ))}
             <Button
               onClick={() => onNavigate('cottages')}
               className="bg-[var(--river-blue)] hover:bg-[var(--river-blue)]/90 text-white rounded-full px-6"
             >
-              Book Now
+              <Ed as="span" id="nav.booknow">Book Now</Ed>
             </Button>
           </div>
 
@@ -97,17 +98,17 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                     currentPage === item.page ? 'text-[var(--sand-tan)]' : ''
                   }`}
                 >
-                  {item.label}
+                  <Ed as="span" id={item.id}>{item.label}</Ed>
                 </button>
               ))}
               <Button
                 onClick={() => {
-                  onNavigate('lodging');
+                  onNavigate('cottages');
                   setIsMobileMenuOpen(false);
                 }}
                 className="bg-[var(--river-blue)] hover:bg-[var(--river-blue)]/90 text-white rounded-full w-full"
               >
-                Book Now
+                <Ed as="span" id="nav.booknow">Book Now</Ed>
               </Button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getUnit, computePriceBreakdown, dollars, Unit, CHECK_IN_TIME, CHECK_OUT_TIME } from '../lib/cottages';
 import { setBookingSelection } from '../lib/bookingSelection';
 import { Lightbox } from '../components/Lightbox';
+import { Ed } from '../lib/siteText';
 
 interface Props {
   slug?: string;
@@ -54,8 +55,8 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
   if (loading) return <div className="wrs"><div className="wrs-container wrs-section">Loading…</div></div>;
   if (notFound || !unit) return (
     <div className="wrs"><div className="wrs-container wrs-section">
-      <h1 className="wrs-h2">Cottage not found</h1>
-      <p className="wrs-lead">That cottage may have moved. <button className="wrs-btn wrs-btn-outline" onClick={() => onNavigate('cottages')}>Back to cottages</button></p>
+      <Ed as="h1" id="cottagedetail.notfound.title" className="wrs-h2">Cottage not found</Ed>
+      <p className="wrs-lead"><Ed as="span" id="cottagedetail.notfound.text">That cottage may have moved. </Ed><button className="wrs-btn wrs-btn-outline" onClick={() => onNavigate('cottages')}><Ed as="span" id="cottagedetail.notfound.back">Back to cottages</Ed></button></p>
     </div></div>
   );
 
@@ -67,7 +68,7 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
       {/* Gallery */}
       <section style={{ background: 'var(--wrs-green)' }}>
         <div className="wrs-container" style={{ paddingTop: 96, paddingBottom: 20 }}>
-          <button className="wrs-chip" onClick={() => onNavigate('cottages')} style={{ cursor: 'pointer', marginBottom: 14 }}>← All cottages</button>
+          <button className="wrs-chip" onClick={() => onNavigate('cottages')} style={{ cursor: 'pointer', marginBottom: 14 }}><Ed as="span" id="cottagedetail.gallery.back">← All cottages</Ed></button>
           {photos.length > 0 && (
             <div className="wrs-gallery2" style={photos.length <= 1 ? { gridTemplateColumns: '1fr' } : undefined}>
               <button className="wrs-gallery2__hero" aria-label="Open photo gallery" onClick={() => { setGalleryStart(0); setGalleryOpen(true); }}>
@@ -80,7 +81,7 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
                   </div>
                   <div className="wrs-gallery2__overlay">
                     <button className="wrs-gallery2__btn" onClick={(e) => { e.stopPropagation(); setGalleryStart(0); setGalleryOpen(true); }}>
-                      View full gallery ({photos.length})
+                      <Ed as="span" id="cottagedetail.gallery.viewfull">View full gallery</Ed> ({photos.length})
                     </button>
                   </div>
                 </div>
@@ -107,14 +108,14 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
                 <span><b>{unit.bedrooms === 0 ? 'Studio' : `${unit.bedrooms} bedroom${unit.bedrooms === 1 ? '' : 's'}`}</b></span>
                 <span><b>{unit.beds}</b> bed{unit.beds === 1 ? '' : 's'}</span>
                 <span><b>{unit.baths}</b> bath{unit.baths === 1 ? '' : 's'}</span>
-                <span>Sleeps <b>{unit.maxGuests}</b></span>
+                <span><Ed as="span" id="cottagedetail.specs.sleeps">Sleeps</Ed> <b>{unit.maxGuests}</b></span>
               </div>
 
               <p className="wrs-p">{unit.description}</p>
 
               {!!unit.amenities?.length && (
                 <>
-                  <h3 className="wrs-h3" style={{ marginTop: 26 }}>What this cottage includes</h3>
+                  <Ed as="h3" id="cottagedetail.amenities.title" className="wrs-h3" style={{ marginTop: 26 }}>What this cottage includes</Ed>
                   <div className="wrs-chips" style={{ marginTop: 10 }}>
                     {unit.amenities.map(a => <span key={a} className="wrs-chip">{a}</span>)}
                   </div>
@@ -122,7 +123,7 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
               )}
 
               <div className="wrs-note" style={{ marginTop: 26 }}>
-                Check-in from <b>{CHECK_IN_TIME}</b> · Check-out by <b>{CHECK_OUT_TIME}</b>
+                <Ed as="span" id="cottagedetail.times.checkin">Check-in from</Ed> <b>{CHECK_IN_TIME}</b> · <Ed as="span" id="cottagedetail.times.checkout">Check-out by</Ed> <b>{CHECK_OUT_TIME}</b>
               </div>
             </div>
 
@@ -130,27 +131,27 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
             <div className="wrs-bookbox">
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
                 <span className="wrs-price">{dollars(unit.weekdayPriceCents ?? 0)}</span>
-                <span className="wrs-muted">/ night (Mon–Thu)</span>
+                <Ed as="span" id="cottagedetail.price.pernight" className="wrs-muted">/ night (Mon–Thu)</Ed>
               </div>
               <p className="wrs-muted" style={{ marginTop: 0, fontSize: 14 }}>
-                Fri–Sun {dollars(unit.weekendPriceCents ?? 0)}/night · Cleaning fee {dollars(unit.cleaningFeeCents ?? 0)}
+                <Ed as="span" id="cottagedetail.price.weekend">Fri–Sun</Ed> {dollars(unit.weekendPriceCents ?? 0)}<Ed as="span" id="cottagedetail.price.cleaning">/night · Cleaning fee </Ed>{dollars(unit.cleaningFeeCents ?? 0)}
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
                 <div className="wrs-field" style={{ marginBottom: 0 }}>
-                  <label className="wrs-label">Check-in</label>
+                  <Ed as="label" id="cottagedetail.field.checkin" className="wrs-label">Check-in</Ed>
                   <input className="wrs-input" type="date" min={todayYMD()} value={checkIn}
                     onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut(addDaysYMD(e.target.value, 1)); }} />
                 </div>
                 <div className="wrs-field" style={{ marginBottom: 0 }}>
-                  <label className="wrs-label">Check-out</label>
+                  <Ed as="label" id="cottagedetail.field.checkout" className="wrs-label">Check-out</Ed>
                   <input className="wrs-input" type="date" min={checkIn ? addDaysYMD(checkIn, 1) : addDaysYMD(todayYMD(), 1)} value={checkOut}
                     onChange={e => setCheckOut(e.target.value)} />
                 </div>
               </div>
 
               <div className="wrs-field" style={{ marginTop: 12 }}>
-                <label className="wrs-label">Guests</label>
+                <Ed as="label" id="cottagedetail.field.guests" className="wrs-label">Guests</Ed>
                 <select className="wrs-select" value={guests} onChange={e => setGuests(Number(e.target.value))}>
                   {guestOptions.map(n => <option key={n} value={n}>{n} guest{n === 1 ? '' : 's'}</option>)}
                 </select>
@@ -161,16 +162,14 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
                   {breakdown.lines.map((l, i) => (
                     <div className="wrs-priceline" key={i}><span>{l.label}</span><span>{dollars(l.amountCents)}</span></div>
                   ))}
-                  <div className="wrs-priceline wrs-priceline--total"><span>Total</span><span>{dollars(breakdown.totalCents)}</span></div>
+                  <div className="wrs-priceline wrs-priceline--total"><Ed as="span" id="cottagedetail.price.total">Total</Ed><span>{dollars(breakdown.totalCents)}</span></div>
                 </div>
               )}
 
               <button className="wrs-btn wrs-btn-primary wrs-btn-block" style={{ marginTop: 16 }} disabled={!datesValid} onClick={reserve}>
-                {datesValid ? 'Reserve' : 'Select dates to reserve'}
+                {datesValid ? <Ed as="span" id="cottagedetail.reserve.ready">Reserve</Ed> : <Ed as="span" id="cottagedetail.reserve.disabled">Select dates to reserve</Ed>}
               </button>
-              <p className="wrs-muted" style={{ fontSize: 13, textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
-                You won't be charged until your booking is approved.
-              </p>
+              <Ed as="p" id="cottagedetail.booking.disclaimer" className="wrs-muted" style={{ fontSize: 13, textAlign: 'center', marginTop: 10, marginBottom: 0 }}>You won't be charged until your booking is approved.</Ed>
             </div>
           </div>
         </div>

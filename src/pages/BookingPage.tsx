@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getUnit, computePriceBreakdown, dollars, Unit, GUEST_AGREEMENT_TEXT, CHECK_IN_TIME, CHECK_OUT_TIME, createBooking, createCheckoutSession } from '../lib/cottages';
 import { getBookingSelection, clearBookingSelection, BookingSelection } from '../lib/bookingSelection';
+import { Ed } from '../lib/siteText';
 
 interface Props {
   onNavigate: (page: string, slug?: string) => void;
@@ -67,13 +68,13 @@ export function BookingPage({ onNavigate }: Props) {
     }
   }
 
-  if (loading) return <div className="wrs"><div className="wrs-container wrs-section">Loading…</div></div>;
+  if (loading) return <div className="wrs"><div className="wrs-container wrs-section"><Ed as="span" id="booking.loading">Loading…</Ed></div></div>;
 
   if (!sel || !unit) return (
     <div className="wrs"><div className="wrs-container wrs-section">
-      <h1 className="wrs-h2">Start your booking</h1>
-      <p className="wrs-lead">Pick a cottage and your dates to begin.</p>
-      <button className="wrs-btn wrs-btn-primary" onClick={() => onNavigate('cottages')}>Browse cottages</button>
+      <Ed as="h1" id="booking.empty.title" className="wrs-h2">Start your booking</Ed>
+      <Ed as="p" id="booking.empty.sub" className="wrs-lead">Pick a cottage and your dates to begin.</Ed>
+      <button className="wrs-btn wrs-btn-primary" onClick={() => onNavigate('cottages')}><Ed as="span" id="booking.empty.browse">Browse cottages</Ed></button>
     </div></div>
   );
 
@@ -81,8 +82,8 @@ export function BookingPage({ onNavigate }: Props) {
     <div className="wrs">
       <section style={{ background: 'var(--wrs-green)' }}>
         <div className="wrs-container" style={{ paddingTop: 96, paddingBottom: 22 }}>
-          <p className="wrs-eyebrow" style={{ color: 'var(--wrs-tan)' }}>Almost there</p>
-          <h1 className="wrs-h1" style={{ color: '#fff', fontSize: 'clamp(28px,4vw,42px)', marginBottom: 0 }}>Complete your booking</h1>
+          <Ed as="p" id="booking.hero.eyebrow" className="wrs-eyebrow" style={{ color: 'var(--wrs-tan)' }}>Almost there</Ed>
+          <Ed as="h1" id="booking.hero.title" className="wrs-h1" style={{ color: '#fff', fontSize: 'clamp(28px,4vw,42px)', marginBottom: 0 }}>Complete your booking</Ed>
         </div>
       </section>
 
@@ -91,22 +92,22 @@ export function BookingPage({ onNavigate }: Props) {
           <div className="wrs-detail">
             {/* Guest form */}
             <div>
-              <h2 className="wrs-h3">Your details</h2>
-              <div className="wrs-field"><label className="wrs-label">Full name</label><input className="wrs-input" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Doe" /></div>
+              <Ed as="h2" id="booking.details.heading" className="wrs-h3">Your details</Ed>
+              <div className="wrs-field"><Ed as="label" id="booking.field.name" className="wrs-label">Full name</Ed><input className="wrs-input" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Doe" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="wrs-field"><label className="wrs-label">Email</label><input className="wrs-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" /></div>
-                <div className="wrs-field"><label className="wrs-label">Phone</label><input className="wrs-input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(724) 555-0100" /></div>
+                <div className="wrs-field"><Ed as="label" id="booking.field.email" className="wrs-label">Email</Ed><input className="wrs-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" /></div>
+                <div className="wrs-field"><Ed as="label" id="booking.field.phone" className="wrs-label">Phone</Ed><input className="wrs-input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="(724) 555-0100" /></div>
               </div>
 
-              <h2 className="wrs-h3" style={{ marginTop: 22 }}>Add-ons</h2>
+              <Ed as="h2" id="booking.addons.heading" className="wrs-h3" style={{ marginTop: 22 }}>Add-ons</Ed>
               <div className="wrs-field">
-                <label className="wrs-label">Firewood bundles ({dollars(FIREWOOD_CENTS)} each)</label>
+                <label className="wrs-label"><Ed as="span" id="booking.addons.firewood.a">Firewood bundles (</Ed>{dollars(FIREWOOD_CENTS)}<Ed as="span" id="booking.addons.firewood.b"> each)</Ed></label>
                 <select className="wrs-select" value={firewood} onChange={e => setFirewood(Number(e.target.value))} style={{ maxWidth: 160 }}>
                   {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
 
-              <h2 className="wrs-h3" style={{ marginTop: 12 }}>Promo code</h2>
+              <Ed as="h2" id="booking.promo.heading" className="wrs-h3" style={{ marginTop: 12 }}>Promo code</Ed>
               <div className="wrs-field"><input className="wrs-input" value={promo} onChange={e => setPromo(e.target.value.toUpperCase())} placeholder="Optional" style={{ maxWidth: 260 }} /></div>
 
               <label className="wrs-check" style={{ marginTop: 16 }}>
@@ -128,14 +129,14 @@ export function BookingPage({ onNavigate }: Props) {
                   <div className="wrs-priceline" key={i}><span>{l.label}</span><span>{dollars(l.amountCents)}</span></div>
                 ))}
                 {firewood > 0 && <div className="wrs-priceline"><span>Firewood ({firewood} × {dollars(FIREWOOD_CENTS)})</span><span>{dollars(addOnCents)}</span></div>}
-                <div className="wrs-priceline wrs-priceline--total"><span>Total</span><span>{dollars(grandTotal)}</span></div>
+                <div className="wrs-priceline wrs-priceline--total"><Ed as="span" id="booking.summary.total">Total</Ed><span>{dollars(grandTotal)}</span></div>
               </div>
-              {!isCottage && <p className="wrs-muted" style={{ fontSize: 13, marginTop: 8 }}>No lodging tax on primitive camping.</p>}
+              {!isCottage && <Ed as="p" id="booking.summary.notax" className="wrs-muted" style={{ fontSize: 13, marginTop: 8 }}>No lodging tax on primitive camping.</Ed>}
               <button className="wrs-btn wrs-btn-primary wrs-btn-block" style={{ marginTop: 14 }} onClick={submit} disabled={submitting}>
-                {submitting ? 'Redirecting to secure checkout…' : 'Continue to payment'}
+                {submitting ? <Ed as="span" id="booking.pay.submitting">Redirecting to secure checkout…</Ed> : <Ed as="span" id="booking.pay.continue">Continue to payment</Ed>}
               </button>
               <p className="wrs-muted" style={{ fontSize: 13, textAlign: 'center', marginTop: 10, marginBottom: 0 }}>
-                Check-in {CHECK_IN_TIME} · Check-out {CHECK_OUT_TIME}. Your card is held, not charged, until we approve your booking.
+                <Ed as="span" id="booking.checkinfo.a">Check-in </Ed>{CHECK_IN_TIME}<Ed as="span" id="booking.checkinfo.b"> · Check-out </Ed>{CHECK_OUT_TIME}<Ed as="span" id="booking.checkinfo.c">. Your card is held, not charged, until we approve your booking.</Ed>
               </p>
             </div>
           </div>
