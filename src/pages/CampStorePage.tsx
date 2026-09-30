@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ShoppingBag, Store as StoreIcon, Truck, Clock, Plus, Minus, X, CheckCircle } from 'lucide-react';
 import { CTAButton } from '../components/CTAButton';
-import { fetchStore, createStoreCheckout, dollars, StoreProduct, Fulfillment } from '../lib/store';
+import { fetchStore, createStoreCheckout, dollars, StoreProduct, Fulfillment, MERCH_TAX_RATE } from '../lib/store';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 
 // Camp store photos for the Johnetta Supply carousel (storefront + interior).
@@ -70,8 +70,10 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
   );
   const itemCount = cartLines.reduce((n, l) => n + l.qty, 0);
   const subtotalCents = cartLines.reduce((n, l) => n + l.product.priceCents * l.qty, 0);
+  const taxableCents = cartLines.reduce((n, l) => n + (l.product.taxable ? l.product.priceCents * l.qty : 0), 0);
+  const taxCents = Math.round(taxableCents * MERCH_TAX_RATE);
   const shippingCents = fulfillment === 'ship' && itemCount > 0 ? shipFeeCents : 0;
-  const totalCents = subtotalCents + shippingCents;
+  const totalCents = subtotalCents + taxCents + shippingCents;
 
   async function checkout() {
     setError(null);
@@ -288,6 +290,9 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
                   {/* Totals */}
                   <div className="text-sm space-y-1 mb-4">
                     <div className="flex justify-between"><span>Subtotal</span><span>{dollars(subtotalCents)}</span></div>
+                    {taxCents > 0 && (
+                      <div className="flex justify-between"><span>PA sales tax (6%)</span><span>{dollars(taxCents)}</span></div>
+                    )}
                     <div className="flex justify-between">
                       <span>Shipping</span>
                       <span>{fulfillment === 'ship' ? dollars(shippingCents) : 'Free (pickup)'}</span>

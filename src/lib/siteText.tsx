@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode, createElement } from 'react';
-import { getAdminPassword } from './adminSession';
+import { getAdminPassword, setAdminPassword } from './adminSession';
 
 const API_URL = import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:5050') : '';
 
@@ -29,21 +29,46 @@ export function SiteTextProvider({ children, showEditor = true }: { children: Re
   const [toast, setToast] = useState<string | null>(null);
   const drafts = useRef<TextMap>({});      // pending edits, id -> new text
   const defaults = useRef<TextMap>({});    // id -> built-in default text
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [pwPrompt, setPwPrompt] = useState(false);   // show the unlock field
+  const [pwError, setPwError] = useState('');
 
   useEffect(() => {
     fetch(`${API_URL}/api/site-text`).then(r => r.json()).then(d => setMap(d.text || {})).catch(() => {});
-    setIsAdmin(!!getAdminPassword());
-    const onFocus = () => setIsAdmin(!!getAdminPassword());
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
   }, []);
 
   const setDraft = (id: string, value: string) => { drafts.current[id] = value; };
   const registerDefault = (id: string, def: string) => { defaults.current[id] = def; };
 
+  // Clicking "Edit text": go straight in if already unlocked, else ask for the
+  // admin password first (needed so Save can authenticate to the server).
+  function onEditClick() {
+    if (getAdminPassword()) { startEditing(); return; }
+    setPwError('');
+    setPwPrompt(true);
+  }
+
+  async function submitPassword(pw: string) {
+    const password = (pw || '').trim();
+    if (!password) return;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.role !== 'admin') { setPwError('Incorrect password'); return; }
+      setAdminPassword(password);
+      setPwPrompt(false);
+      setPwError('');
+      startEditing();
+    } catch {
+      setPwError('Could not verify — try again.');
+    }
+  }
+
   function startEditing() { drafts.current = {}; setEditing(true); }
-  function cancel() { drafts.current = {}; setEditing(false); }
+  function cancel() { drafts.current = {}; setEditing(false); setPwPrompt(false); setPwError(''); }
 
   async function save() {
     // Only send edits that actually changed vs the current value (override or default).
@@ -78,18 +103,23 @@ export function SiteTextProvider({ children, showEditor = true }: { children: Re
   return (
     <SiteTextCtx.Provider value={{ map, editing, setDraft, registerDefault }}>
       {children}
-      {isAdmin && showEditor && <EditorBar
+      {showEditor && <EditorBar
         editing={editing} saving={saving} toast={toast}
-        onStart={startEditing} onSave={save} onCancel={cancel}
+        pwPrompt={pwPrompt} pwError={pwError}
+        onStart={onEditClick} onSave={save} onCancel={cancel}
+        onSubmitPassword={submitPassword}
       />}
     </SiteTextCtx.Provider>
   );
 }
 
-function EditorBar({ editing, saving, toast, onStart, onSave, onCancel }: {
+function EditorBar({ editing, saving, toast, pwPrompt, pwError, onStart, onSave, onCancel, onSubmitPassword }: {
   editing: boolean; saving: boolean; toast: string | null;
+  pwPrompt: boolean; pwError: string;
   onStart: () => void; onSave: () => void; onCancel: () => void;
+  onSubmitPassword: (pw: string) => void;
 }) {
+  const [pw, setPw] = useState('');
   const wrap: React.CSSProperties = { position: 'fixed', right: 20, bottom: 20, zIndex: 900, display: 'flex', gap: 8, alignItems: 'center' };
   const btn: React.CSSProperties = { border: 0, borderRadius: 999, padding: '11px 18px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,.25)' };
   return (
@@ -101,13 +131,27 @@ function EditorBar({ editing, saving, toast, onStart, onSave, onCancel }: {
       )}
       <div style={wrap}>
         {toast && <span style={{ background: '#111', color: '#fff', padding: '8px 14px', borderRadius: 999, fontSize: 13, boxShadow: '0 4px 16px rgba(0,0,0,.25)' }}>{toast}</span>}
-        {!editing ? (
-          <button style={{ ...btn, background: 'var(--wrs-green, #24432f)', color: '#fff' }} onClick={onStart}>✏️ Edit text</button>
-        ) : (
+        {editing ? (
           <>
             <button style={{ ...btn, background: '#fff', color: '#333', border: '1px solid #ccc' }} onClick={onCancel} disabled={saving}>Cancel</button>
             <button style={{ ...btn, background: 'var(--wrs-blue, #2f6fb0)', color: '#fff' }} onClick={onSave} disabled={saving}>{saving ? 'Saving…' : 'Save & publish'}</button>
           </>
+        ) : pwPrompt ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#fff', borderRadius: 999, padding: '6px 6px 6px 14px', boxShadow: '0 4px 16px rgba(0,0,0,.25)' }}>
+              <input
+                type="password" autoFocus placeholder="Admin password" value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') onSubmitPassword(pw); }}
+                style={{ border: 0, outline: 'none', fontSize: 14, width: 150 }}
+              />
+              <button style={{ ...btn, padding: '8px 16px', background: 'var(--wrs-green, #24432f)', color: '#fff' }} onClick={() => onSubmitPassword(pw)}>Unlock</button>
+              <button style={{ ...btn, padding: '8px 12px', background: '#fff', color: '#888', border: '1px solid #ddd', boxShadow: 'none' }} onClick={onCancel}>✕</button>
+            </div>
+            {pwError && <span style={{ background: '#b3261e', color: '#fff', padding: '4px 12px', borderRadius: 999, fontSize: 12 }}>{pwError}</span>}
+          </div>
+        ) : (
+          <button style={{ ...btn, background: 'var(--wrs-green, #24432f)', color: '#fff' }} onClick={onStart}>✏️ Edit text</button>
         )}
       </div>
     </>

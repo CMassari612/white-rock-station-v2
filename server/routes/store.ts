@@ -6,6 +6,9 @@ const router = express.Router();
 
 // Flat shipping fee (placeholder) applied when the customer chooses shipping.
 const SHIP_FEE_CENTS = 800;
+// PA 6% sales tax, charged only on taxable items (housewares like mugs).
+// Clothing and firewood are exempt in PA.
+const MERCH_TAX_RATE = 0.06;
 
 // GET /api/store/products — public catalog (active products only) for the storefront.
 router.get('/products', async (_req: Request, res: Response) => {
@@ -36,6 +39,7 @@ router.post('/checkout', async (req: Request, res: Response) => {
     const catalog = await getAllStoreProducts();
 
     const line_items: any[] = [];
+    let taxableCents = 0;
     for (const it of items) {
       const product = catalog.find((p) => p.id === it?.id && p.active !== false);
       if (!product) continue;
@@ -48,9 +52,19 @@ router.post('/checkout', async (req: Request, res: Response) => {
         },
         quantity: qty,
       });
+      if (product.taxable) taxableCents += product.priceCents * qty;
     }
     if (line_items.length === 0) {
       return res.status(400).json({ error: 'No valid items in cart.' });
+    }
+
+    // PA 6% sales tax on taxable items only (mugs); clothing & firewood exempt.
+    const taxCents = Math.round(taxableCents * MERCH_TAX_RATE);
+    if (taxCents > 0) {
+      line_items.push({
+        price_data: { currency: 'usd', unit_amount: taxCents, product_data: { name: 'PA sales tax (6%)' } },
+        quantity: 1,
+      });
     }
 
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';

@@ -49,6 +49,23 @@ app.get('/api/cron/sync-airbnb', async (req, res) => {
   }
 });
 
+// Scheduled guest emails: directions (day before check-in) and day-of check-in
+// WiFi email (~3 PM ET). Vercel Cron hits this hourly; CRON_SECRET when set.
+app.get('/api/cron/guest-emails', async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  if (secret && (req.headers.authorization || '') !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { sendScheduledGuestEmails } = await import('./utils/guestEmails');
+    const result = await sendScheduledGuestEmails();
+    res.json({ ok: true, ...result });
+  } catch (e: any) {
+    console.error('[CRON] guest emails failed:', e);
+    res.status(500).json({ error: e?.message || 'guest emails failed' });
+  }
+});
+
 app.use('/api/units', unitsRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/booking', bookingRequestRoutes);

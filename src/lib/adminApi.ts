@@ -60,7 +60,7 @@ async function call(path: string, method = 'GET', body?: any) {
 // ---- Store / merch ----
 export interface AdminStoreProduct {
   id: string; name: string; priceCents: number; blurb: string;
-  accent: string; image: string; active?: boolean; updatedAt?: string;
+  accent: string; image: string; active?: boolean; taxable?: boolean; updatedAt?: string;
 }
 export async function adminGetStore(): Promise<AdminStoreProduct[]> {
   return (await call('/api/admin/store')).products;

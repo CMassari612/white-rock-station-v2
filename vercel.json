@@ -7,6 +7,7 @@
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/cron/sync-airbnb", "schedule": "0 * * * *" }
+    { "path": "/api/cron/sync-airbnb", "schedule": "0 * * * *" },
+    { "path": "/api/cron/guest-emails", "schedule": "0 * * * *" }
   ]
 }

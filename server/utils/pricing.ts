@@ -1,15 +1,17 @@
 // White Rock Station — pricing engine (rework)
-// Per-night weekday (Sun–Thu) / weekend (Fri–Sat) rates from the unit,
-// a separate cleaning fee, and a 5% Armstrong County lodging tax on cottages
+// Per-night weekday (Mon–Thu) / weekend (Fri–Sun) rates from the unit,
+// a separate cleaning fee, and a 6% PA hotel occupancy tax on cottages
 // (primitive tent camping is NOT taxed).
 
 import { Unit } from '../types/unit';
 
-export const LODGING_TAX_RATE = 0.05; // 5% Armstrong County lodging tax
+// 6% PA state hotel occupancy tax. (Armstrong County adds no local sales/hotel
+// surcharge; bump this only if the county confirms a local lodging tax.)
+export const LODGING_TAX_RATE = 0.06;
 
-// Whether the lodging tax applies to the cleaning fee too, or only the nightly
-// subtotal. Default: nightly only. Flip to true if the county requires it.
-export const TAX_INCLUDES_CLEANING_FEE = false;
+// PA taxes cleaning fees as part of the accommodation charge, so the tax applies
+// to the nightly subtotal + cleaning fee.
+export const TAX_INCLUDES_CLEANING_FEE = true;
 
 export interface PriceLine {
   label: string;
@@ -33,10 +35,10 @@ function parseYMD(ymd: string): Date {
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1));
 }
 
-// A night is identified by its check-in date. Fri (5) and Sat (6) are weekend nights.
+// A night is identified by its check-in date. Fri (5), Sat (6), Sun (0) are weekend nights.
 function isWeekendNight(date: Date): boolean {
   const day = date.getUTCDay();
-  return day === 5 || day === 6;
+  return day === 5 || day === 6 || day === 0;
 }
 
 /**
@@ -94,16 +96,16 @@ export function computePriceBreakdown(
 
   const lines: PriceLine[] = [];
   if (weekdayNights > 0) {
-    lines.push({ label: `Weekday nights (${weekdayNights} × $${(weekday / 100).toFixed(0)})`, amountCents: weekdayNights * weekday });
+    lines.push({ label: `Mon–Thu nights (${weekdayNights} × $${(weekday / 100).toFixed(0)})`, amountCents: weekdayNights * weekday });
   }
   if (weekendNights > 0) {
-    lines.push({ label: `Weekend nights (${weekendNights} × $${(weekend / 100).toFixed(0)})`, amountCents: weekendNights * weekend });
+    lines.push({ label: `Fri–Sun nights (${weekendNights} × $${(weekend / 100).toFixed(0)})`, amountCents: weekendNights * weekend });
   }
   if (cleaningFeeCents > 0) {
     lines.push({ label: 'Cleaning fee', amountCents: cleaningFeeCents });
   }
   if (taxCents > 0) {
-    lines.push({ label: 'Lodging tax (5%)', amountCents: taxCents });
+    lines.push({ label: 'Lodging tax (6%)', amountCents: taxCents });
   }
 
   return {

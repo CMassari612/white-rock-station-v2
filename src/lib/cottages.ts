@@ -94,8 +94,8 @@ export async function getUnitUnavailableDates(unitId: string, start: string, end
 export const FIREWOOD_CENTS = 800;
 
 // ── Pricing preview (mirror of server/utils/pricing.ts) ───────────────────────
-export const LODGING_TAX_RATE = 0.05;
-export const TAX_INCLUDES_CLEANING_FEE = false;
+export const LODGING_TAX_RATE = 0.06;
+export const TAX_INCLUDES_CLEANING_FEE = true;
 
 export interface PriceLine {
   label: string;
@@ -155,7 +155,7 @@ export function computePriceBreakdown(unit: Unit, startDate: string, endDate: st
   if (weekdayNights > 0) lines.push({ label: `Mon–Thu nights (${weekdayNights} × ${dollars(weekday)})`, amountCents: weekdayNights * weekday });
   if (weekendNights > 0) lines.push({ label: `Fri–Sun nights (${weekendNights} × ${dollars(weekend)})`, amountCents: weekendNights * weekend });
   if (cleaningFeeCents > 0) lines.push({ label: 'Cleaning fee', amountCents: cleaningFeeCents });
-  if (taxCents > 0) lines.push({ label: 'Lodging tax (5%)', amountCents: taxCents });
+  if (taxCents > 0) lines.push({ label: 'Lodging tax (6%)', amountCents: taxCents });
 
   return { nights, weekdayNights, weekendNights, lodgingCents, cleaningFeeCents, taxCents, totalCents, lines };
 }

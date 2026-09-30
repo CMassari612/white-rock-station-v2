@@ -36,6 +36,11 @@ interface Props {
 
 const money = (c?: number) => `$${((c ?? 0) / 100).toFixed(2)}`;
 const toCents = (dollars: string | number) => Math.max(0, Math.round(Number(dollars || 0) * 100));
+// Optional add-ons purchased with a booking (firewood, etc.).
+const addOnsLabel = (b: AdminBooking) => {
+  const fw = b.addOns?.firewood || 0;
+  return fw > 0 ? `${fw} × Firewood bundle` : '';
+};
 const STATUS_COLORS: Record<string, string> = {
   pending_approval: '#b7791f', confirmed: '#2f7a4f', pending: '#7a7a7a', cancelled: '#b23b3b', expired: '#999', refunded: '#b23b3b',
 };
@@ -171,6 +176,7 @@ export function AdminDashboard({ onNavigate }: Props) {
                     <div>
                       <div style={{ fontWeight: 800 }}>{b.unitName} · {b.startDate} → {b.endDate} &nbsp;{pill(b.status)}</div>
                       <div className="wrs-muted" style={{ fontSize: 14 }}>{b.name} · {b.email} · {b.phone || '—'} · {b.guests} guest(s)</div>
+                      {addOnsLabel(b) && <div style={{ fontSize: 13, color: 'var(--wrs-blue)', fontWeight: 700 }}>Add-ons: {addOnsLabel(b)}</div>}
                       <div style={{ fontWeight: 700, marginTop: 4 }}>{money(b.totalCents)} <span className="wrs-muted" style={{ fontWeight: 400, fontSize: 13 }}>(card held, not charged)</span></div>
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -192,7 +198,7 @@ export function AdminDashboard({ onNavigate }: Props) {
                   {bookings.map(b => (
                     <tr key={b.id} style={{ borderTop: '1px solid var(--wrs-line)' }}>
                       <td style={{ padding: '10px 12px' }}>{b.unitName}</td>
-                      <td style={{ padding: '10px 12px' }}>{b.name}<div className="wrs-muted" style={{ fontSize: 12 }}>{b.email}</div></td>
+                      <td style={{ padding: '10px 12px' }}>{b.name}<div className="wrs-muted" style={{ fontSize: 12 }}>{b.email}</div>{addOnsLabel(b) && <div style={{ fontSize: 12, color: 'var(--wrs-blue)' }}>+ {addOnsLabel(b)}</div>}</td>
                       <td style={{ padding: '10px 12px' }}>{b.startDate} → {b.endDate}</td>
                       <td style={{ padding: '10px 12px' }}>{money(b.totalCents)}</td>
                       <td style={{ padding: '10px 12px' }}>{pill(b.status)}</td>
@@ -340,6 +346,7 @@ function StoreRow({ product, onChanged, onError }: { product: AdminStoreProduct;
   const [price, setPrice] = useState(((product.priceCents ?? 0) / 100).toString());
   const [blurb, setBlurb] = useState(product.blurb || '');
   const [active, setActive] = useState(product.active !== false);
+  const [taxable, setTaxable] = useState(product.taxable === true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -347,7 +354,8 @@ function StoreRow({ product, onChanged, onError }: { product: AdminStoreProduct;
     name !== product.name ||
     Math.max(0, Math.round(Number(price || 0) * 100)) !== (product.priceCents ?? 0) ||
     blurb !== (product.blurb || '') ||
-    active !== (product.active !== false);
+    active !== (product.active !== false) ||
+    taxable !== (product.taxable === true);
 
   async function save() {
     setSaving(true);
@@ -357,6 +365,7 @@ function StoreRow({ product, onChanged, onError }: { product: AdminStoreProduct;
         priceCents: Math.max(0, Math.round(Number(price || 0) * 100)),
         blurb,
         active,
+        taxable,
       });
       await onChanged();
     } catch (e: any) { onError(e?.message || 'Save failed'); }
@@ -396,7 +405,10 @@ function StoreRow({ product, onChanged, onError }: { product: AdminStoreProduct;
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: 10, alignItems: 'end' }}>
           <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Name</label><input className="wrs-input" value={name} onChange={e => setName(e.target.value)} /></div>
           <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Price ($)</label><input className="wrs-input" type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} /></div>
-          <label className="wrs-check" style={{ alignItems: 'center', marginBottom: 8, whiteSpace: 'nowrap' }}><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> <span>Active</span></label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+            <label className="wrs-check" style={{ alignItems: 'center', whiteSpace: 'nowrap' }}><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> <span>Active</span></label>
+            <label className="wrs-check" style={{ alignItems: 'center', whiteSpace: 'nowrap' }}><input type="checkbox" checked={taxable} onChange={e => setTaxable(e.target.checked)} /> <span>Taxable (6%)</span></label>
+          </div>
         </div>
         <div className="wrs-field" style={{ marginTop: 10, marginBottom: 0 }}>
           <label className="wrs-label">Description</label>

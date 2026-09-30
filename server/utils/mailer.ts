@@ -34,12 +34,31 @@ async function send(to: string, subject: string, html: string, text: string): Pr
 const money = (c?: number) => `$${((c ?? 0) / 100).toFixed(2)}`;
 const stay = (b: Booking) => `${b.unitName || b.unitType} · ${b.startDate} → ${b.endDate} · ${b.guests} guest(s)`;
 
+const PHONE = '(724) 882-9195';
+const PHONE_TEL = '724-882-9195';
+
+// Human-readable list of optional add-ons purchased with the booking.
+function addOnsList(b: Booking): string[] {
+  const out: string[] = [];
+  const fw = b.addOns?.firewood || 0;
+  if (fw > 0) out.push(`${fw} × Firewood bundle`);
+  return out;
+}
+function addOnsHtml(b: Booking): string {
+  const list = addOnsList(b);
+  return list.length ? `<p><b>Add-ons:</b> ${list.join(', ')}</p>` : '';
+}
+function addOnsText(b: Booking): string {
+  const list = addOnsList(b);
+  return list.length ? ` Add-ons: ${list.join(', ')}.` : '';
+}
+
 export async function mailGuestReceived(b: Booking): Promise<void> {
   await send(
     b.email,
     'We received your booking request — White Rock Station',
-    `<h2>Thanks, ${b.name}!</h2><p>We've received your request:</p><p><b>${stay(b)}</b></p><p>Total ${money(b.totalCents)}. Your card is authorized but <b>not charged</b> — we'll review and confirm shortly.</p><p>White Rock Station</p>`,
-    `Thanks, ${b.name}! We received your request: ${stay(b)}. Total ${money(b.totalCents)}. Your card is authorized but not charged — we'll review and confirm shortly.`
+    `<h2>Thanks, ${b.name}!</h2><p>We've received your request:</p><p><b>${stay(b)}</b></p>${addOnsHtml(b)}<p>Total ${money(b.totalCents)}. Your card is authorized but <b>not charged</b> — we'll review and confirm shortly.</p><p>White Rock Station</p>`,
+    `Thanks, ${b.name}! We received your request: ${stay(b)}.${addOnsText(b)} Total ${money(b.totalCents)}. Your card is authorized but not charged — we'll review and confirm shortly.`
   );
 }
 
@@ -60,36 +79,79 @@ export interface ArrivalInfo {
   parkingImageUrl?: string;
 }
 
-export async function mailGuestApproved(b: Booking, arrival: ArrivalInfo = {}): Promise<void> {
-  const addr = (arrival.address || '').trim();
-  const dir = (arrival.directions || '').trim();
-  const map = (arrival.mapImageUrl || '').trim();
-  const parking = (arrival.parkingImageUrl || '').trim();
-
-  const addrHtml = addr ? `<p><b>Address:</b> ${addr}</p>` : '';
-  const dirHtml = dir ? `<p><b>Getting here:</b><br>${dir.replace(/\n/g, '<br>')}</p>` : '';
-  const mapHtml = map ? `<p><b>Map</b><br><a href="${map}"><img src="${map}" alt="Map to your site" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
-  const parkHtml = parking ? `<p><b>Parking</b> — your cabin is circled:<br><a href="${parking}"><img src="${parking}" alt="Parking — your cabin is circled" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
-
-  const addrText = addr ? ` Address: ${addr}.` : '';
-  const dirText = dir ? ` Getting here: ${dir}.` : '';
-
+// EMAIL 2 — Confirmation / warm welcome (sent when the admin approves). No
+// directions here anymore — those go out the day before in mailGuestDirections.
+export async function mailGuestApproved(b: Booking, _arrival: ArrivalInfo = {}): Promise<void> {
   const cancelHtml =
     `<hr style="border:none;border-top:1px solid #eee;margin:18px 0" />` +
     `<p style="font-size:13px;color:#555;line-height:1.5"><b>Cancellation policy (Firm):</b><br>` +
     `Full refund if you cancel 30 or more days before check-in · 50% refund 7&ndash;30 days before · no refund within 7 days of check-in.<br>` +
     `You may also get a full refund if you cancel within 24 hours of booking, as long as it was booked at least 7 days before check-in.<br>` +
-    `To cancel or change your reservation, call or text (724) 882-9195.</p>`;
+    `To cancel or change your reservation, call or text ${PHONE}.</p>`;
   const cancelText =
     ` Cancellation policy (Firm): full refund 30+ days before check-in; 50% refund 7-30 days before; no refund within 7 days.` +
-    ` Full refund if canceled within 24 hours of booking (when booked 7+ days before check-in).` +
-    ` To cancel, call or text (724) 882-9195.`;
+    ` Full refund if canceled within 24 hours of booking (when booked 7+ days before check-in). To cancel, call or text ${PHONE}.`;
 
   await send(
     b.email,
     'Your White Rock Station booking is confirmed',
-    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p>${dirHtml}${mapHtml}${parkHtml}<p>See you on the river!<br>White Rock Station</p>${cancelHtml}`,
-    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.${dirText}${cancelText}`
+    `<h2>${b.name}, you're booked!</h2>` +
+    `<p>Thanks for booking your stay with us! We're looking forward to welcoming you and hope you enjoy some time to slow down, unwind, and take in the river, trails, and quiet surroundings.</p>` +
+    `<p>We'll send everything you need before arrival to make check-in simple and stress-free.</p>` +
+    `<p><b>Your stay:</b> ${stay(b)}</p>${addOnsHtml(b)}` +
+    `<p><b>Paid:</b> ${money(b.totalCents)} · Check-in from 3:00 PM · Check-out by 10:00 AM.</p>` +
+    `<p>Looking forward to hosting you!<br>White Rock Station</p>${cancelHtml}`,
+    `${b.name}, you're booked! Thanks for booking your stay with us — we're looking forward to welcoming you. ` +
+    `Your stay: ${stay(b)}.${addOnsText(b)} Paid ${money(b.totalCents)}. Check-in from 3 PM, check-out by 10 AM. ` +
+    `We'll send directions before arrival.${cancelText}`
+  );
+}
+
+// EMAIL 3 — Directions (sent the day before check-in). Carries the per-cottage
+// address, map, and circled-parking photo.
+export async function mailGuestDirections(b: Booking, arrival: ArrivalInfo = {}): Promise<void> {
+  const addr = (arrival.address || '').trim();
+  const map = (arrival.mapImageUrl || '').trim();
+  const parking = (arrival.parkingImageUrl || '').trim();
+  const cottage = b.unitName || 'your cottage';
+
+  const addrLine = addr
+    ? `When you put the address in Google Maps — <b>${addr}</b> — it's technically a Vandergrift address, but <b>do not go to Vandergrift</b>.`
+    : `We'll confirm the exact address with you — it's technically a Vandergrift address, but <b>do not go to Vandergrift</b>.`;
+  const lastLine = addr ? `<b>${cottage}</b> (${addr}) is on your left.` : `<b>${cottage}</b> is on your left.`;
+
+  const mapHtml = map ? `<p><a href="${map}"><img src="${map}" alt="Map to White Rock Station" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
+  const parkHtml = parking ? `<p><b>Parking</b> — your cabin is circled:<br><a href="${parking}"><img src="${parking}" alt="Parking — your cabin is circled" style="max-width:100%;width:480px;border-radius:8px;border:1px solid #ddd" /></a></p>` : '';
+
+  await send(
+    b.email,
+    'Getting to White Rock Station — check-in tomorrow',
+    `<h2>Hi ${b.name} — see you tomorrow!</h2>` +
+    `<p>Your check-in is <b>tomorrow, anytime after 3 PM</b>. We want to make sure you can get to the cottage easily — it's located on the Allegheny River and Armstrong Trails in Gilpin Township, PA, near Leechburg.</p>` +
+    `<p>${addrLine}</p>` +
+    `<p><b>Specific directions:</b><br>` +
+    `From the Portage Inn Grille (860 State Route 66, Leechburg, PA), turn onto Johnetta Road. ` +
+    `Go to the bottom of Johnetta Road and you'll see a sign for <b>White Rock Station Riverfront Resort</b>. ` +
+    `Turn right at the sign. Stay to the right — <b>do not cross over the trail</b> — where you see the sign that says <b>Guest Cabins</b>. ${lastLine}</p>` +
+    `${mapHtml}${parkHtml}` +
+    `<p>Need a hand getting in? <b>Call or text <a href="tel:${PHONE_TEL}">${PHONE}</a></b> and we'll help you check in.</p>` +
+    `<p>See you soon!<br>White Rock Station</p>`,
+    `Hi ${b.name}, your check-in is tomorrow anytime after 3 PM. ${addr ? `Address for Google Maps: ${addr} (a Vandergrift address, but do not go to Vandergrift).` : ''} ` +
+    `From the Portage Inn Grille (860 State Route 66, Leechburg PA), turn onto Johnetta Road, go to the bottom, see the sign for White Rock Station Riverfront Resort, turn right, stay right (do not cross the trail) to the Guest Cabins sign — ${cottage} is on your left. Need help? Call or text ${PHONE}.`
+  );
+}
+
+// EMAIL 4 — Day-of check-in (sent ~3 PM on arrival day). WiFi + reminders.
+export async function mailGuestCheckinDay(b: Booking): Promise<void> {
+  await send(
+    b.email,
+    "Welcome to White Rock Station — you're all set for today",
+    `<h2>Welcome, ${b.name}!</h2>` +
+    `<p>Today's the day — check-in is anytime after <b>3:00 PM</b>.</p>` +
+    `<p><b>WiFi at the cabins (Starlink):</b><br>Network: <b>Village Guest</b><br>Password: <b>WhiterockVillage2026</b></p>` +
+    `<p>Check-out is by 10:00 AM. Anything you need during your stay, just call or text <a href="tel:${PHONE_TEL}">${PHONE}</a>.</p>` +
+    `<p>Enjoy your time on the river!<br>White Rock Station</p>`,
+    `Welcome, ${b.name}! Check-in is anytime after 3 PM today. WiFi (Starlink): Network "Village Guest", Password "WhiterockVillage2026". Check-out by 10 AM. Anything you need, call or text ${PHONE}. Enjoy your stay!`
   );
 }
 

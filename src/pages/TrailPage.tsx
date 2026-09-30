@@ -118,7 +118,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
                 and shopping along the riverfront.
               </p>
               <p className="text-sm">
-                <span className="text-[var(--river-blue)]">Distance:</span> 5.7 miles north · ~39 min by bike
+                <span className="text-[var(--river-blue)]">Distance:</span> ~19 miles north · ~2 hr by bike
               </p>
             </div>
 
@@ -128,11 +128,11 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
               </div>
               <h4 className="mb-3">Ford City</h4>
               <p className="text-sm text-[var(--forest-green)]/70 mb-3">
-                A historic glass manufacturing town with unique shops, restaurants, and the 
+                A historic glass manufacturing town with unique shops, restaurants, and the
                 Armstrong County Historical Museum.
               </p>
               <p className="text-sm">
-                <span className="text-[var(--river-blue)]">Distance:</span> 5.7 miles south · ~39 min by bike
+                <span className="text-[var(--river-blue)]">Distance:</span> ~15 miles north · ~1 hr 40 min by bike
               </p>
             </div>
 
@@ -146,7 +146,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
                 architecture along the trail.
               </p>
               <p className="text-sm">
-                <span className="text-[var(--river-blue)]">Distance:</span> ~26 miles south · ~2 hr 40 min by bike
+                <span className="text-[var(--river-blue)]">Distance:</span> ~6 miles south · ~40 min by bike
               </p>
             </div>
           </div>

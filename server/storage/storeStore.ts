@@ -10,6 +10,8 @@ export interface StoreProduct {
   accent: string;     // brand-colored fallback tile if image is missing
   image: string;      // product photo URL (served from /public or Supabase)
   active?: boolean;   // hidden from the storefront when false
+  taxable?: boolean;  // charge PA 6% sales tax (true for housewares like mugs;
+                      // clothing and firewood are exempt in PA)
   updatedAt?: string;
 }
 
@@ -26,7 +28,7 @@ const SEED: StoreProduct[] = [
     image: '/images/store/store-09.jpg', active: true,
     blurb: 'Heavyweight crew sweatshirt for cool riverside nights.' },
   { id: 'mug', name: 'White Rock Station Mug', priceCents: 1500, accent: 'var(--river-blue)',
-    image: '/images/store/store-02.jpg', active: true,
+    image: '/images/store/store-02.jpg', active: true, taxable: true,
     blurb: 'Sturdy ceramic camp mug for riverside mornings.' },
   { id: 'firewood', name: 'Firewood Bundle', priceCents: 800, accent: 'var(--forest-green)',
     image: '/images/store/store-03.jpg', active: true,

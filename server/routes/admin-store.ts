@@ -16,7 +16,7 @@ function slugify(s: string): string {
     .slice(0, 60) || `item-${Date.now()}`;
 }
 
-const EDITABLE: (keyof StoreProduct)[] = ['name', 'priceCents', 'blurb', 'accent', 'image', 'active'];
+const EDITABLE: (keyof StoreProduct)[] = ['name', 'priceCents', 'blurb', 'accent', 'image', 'active', 'taxable'];
 
 function sanitize(body: any): Partial<StoreProduct> {
   const patch: Partial<StoreProduct> = {};

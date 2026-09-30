@@ -12,7 +12,11 @@ export interface StoreProduct {
   blurb: string;
   accent: string;
   image?: string;
+  taxable?: boolean;
 }
+
+// PA 6% sales tax, applied only to taxable items (mugs). Clothing & firewood exempt.
+export const MERCH_TAX_RATE = 0.06;
 
 export interface CartLine {
   id: string;

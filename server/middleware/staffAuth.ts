@@ -8,8 +8,12 @@ export type Role = 'admin' | 'cleaner';
  *  credentials so login/role detection is accurate regardless of dev bypass. */
 export async function resolveRole(password: string): Promise<{ role: Role | null; cleaner?: Cleaner }> {
   const admin = (process.env.ADMIN_PASSWORD || 'admin123').trim();
+  const cleanerPw = (process.env.CLEANER_PASSWORD || 'cleaner123').trim();
   const pw = (password || '').trim();
   if (pw && pw === admin) return { role: 'admin' };
+  // Single shared cleaner password → schedule-only view (like the admin password).
+  if (pw && cleanerPw && pw === cleanerPw) return { role: 'cleaner' };
+  // Legacy per-cleaner accounts (kept for compatibility if any exist).
   if (pw) {
     const cleaner = (await getAllCleaners()).find(c => c.password && c.password.trim() === pw);
     if (cleaner) return { role: 'cleaner', cleaner };

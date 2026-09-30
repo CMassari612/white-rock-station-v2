@@ -9,7 +9,7 @@ router.post('/login', async (req: Request, res: Response) => {
     const { password } = req.body || {};
     const { role, cleaner } = await resolveRole(password || '');
     if (!role) return res.status(401).json({ error: 'Incorrect password' });
-    res.json({ role, name: cleaner?.name || 'Admin' });
+    res.json({ role, name: cleaner?.name || (role === 'admin' ? 'Admin' : 'Cleaner') });
   } catch (err) {
     console.error('[AUTH] login error', err);
     res.status(500).json({ error: 'Login failed' });

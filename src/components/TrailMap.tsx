@@ -2,22 +2,19 @@ import { Bike, Tent } from 'lucide-react';
 
 /**
  * Stylized map of the Armstrong Trails along the Allegheny River.
- * The trail line "redraws" itself on load. Stops run north (top) to
- * south (bottom): Kittanning → White Rock Station → Ford City → Leechburg.
- * Each leg between stops is labeled with its trail distance and an
- * estimated ride time. Colors come from the site's brand palette.
+ * The trail line "redraws" itself on load. Stops run NORTH (top) to
+ * SOUTH (bottom): East Brady → Kittanning → Ford City → White Rock Station →
+ * Leechburg. White Rock Station sits near the south end (Schenley/Gilpin),
+ * just north of Leechburg. Each leg is labeled with its trail distance and an
+ * estimated ride time.
  *
- * Layout: town names sit just to the left/right of their dot; ride-leg
- * pills ride the center trail line. Dots zig-zag down the middle, names
- * fan out to whichever side keeps them clear of the line.
+ * NOTE: distances marked "~" are approximate and pending confirmation.
  */
 
 type Stop = {
   name: string;
-  /** marker position on the 900x660 viewBox */
   cx: number;
   cy: number;
-  /** which side of the dot the name sits */
   side: 'left' | 'right';
   home?: boolean;
 };
@@ -25,7 +22,6 @@ type Stop = {
 type Leg = {
   dist: string;
   time: string;
-  /** pill position as a percentage of the map (centered on the trail line) */
   left: number;
   top: number;
 };
@@ -33,32 +29,53 @@ type Leg = {
 const VIEW_W = 900;
 const VIEW_H = 660;
 
-// North (top) to south (bottom). Dots are spread evenly so no two crowd.
+// North (top) → south (bottom).
 const STOPS: Stop[] = [
-  { name: 'Kittanning', cx: 430, cy: 79, side: 'left' },
-  { name: 'White Rock Station', cx: 500, cy: 231, side: 'right', home: true },
-  { name: 'Ford City', cx: 400, cy: 383, side: 'left' },
-  { name: 'Leechburg', cx: 480, cy: 581, side: 'right' },
+  { name: 'East Brady', cx: 430, cy: 70, side: 'left' },
+  { name: 'Kittanning', cx: 490, cy: 210, side: 'right' },
+  { name: 'Ford City', cx: 400, cy: 360, side: 'left' },
+  { name: 'White Rock Station', cx: 500, cy: 500, side: 'right', home: true },
+  { name: 'Leechburg', cx: 440, cy: 600, side: 'left' },
 ];
 
-// Ride legs between consecutive stops, pushed into the open left/right
-// margin (alternating sides) so they never crowd the dots or town names.
+// Ride legs between consecutive stops (north → south).
+// East Brady↔Kittanning and Kittanning↔Ford City are exact figures from the
+// official Armstrong Trails mileage chart. The two legs south of Ford City
+// (to White Rock Station and Leechburg) are off that chart, so they stay "~".
 const LEGS: Leg[] = [
-  { dist: '5.7 mi', time: '39 min', left: 24, top: 24 }, // Kittanning → White Rock Station
-  { dist: '5.7 mi', time: '39 min', left: 75, top: 46 }, // White Rock Station → Ford City
-  { dist: '20.3 mi', time: '2 hr', left: 26, top: 73 }, // Ford City → Leechburg
+  { dist: '24.8 mi', time: '~2 hr 30', left: 24, top: 21 },   // East Brady → Kittanning (chart)
+  { dist: '4.2 mi', time: '~25 min', left: 75, top: 43 },     // Kittanning → Ford City (chart)
+  { dist: '~15 mi', time: '~1 hr 30', left: 24, top: 65 },    // Ford City → White Rock Station (est.)
+  { dist: '~6 mi', time: '~35 min', left: 74, top: 83 },      // White Rock Station → Leechburg (est.)
 ];
 
-// Faint connectors from each leg's trail midpoint to its pill in the margin.
-const CONNECTORS = [
-  { x1: 495, y1: 149, x2: 216, y2: 158 }, // → leg 1 pill
-  { x1: 424, y1: 307, x2: 675, y2: 304 }, // → leg 2 pill
-  { x1: 438, y1: 488, x2: 234, y2: 482 }, // → leg 3 pill
-];
+// Each distance pill links to BOTH towns its leg spans with a dimmed, dotted
+// line + arrowhead, so it's clear what the distance is "from" and "to".
+// Lines are trimmed to emerge from the pill edge and stop just shy of each dot.
+function trimLine(px: number, py: number, sx: number, sy: number, padStart = 46, padEnd = 16) {
+  const dx = sx - px;
+  const dy = sy - py;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  return { x1: px + ux * padStart, y1: py + uy * padStart, x2: sx - ux * padEnd, y2: sy - uy * padEnd };
+}
+
+// Build two connectors per leg: pill → town A and pill → town B.
+const CONNECTORS = LEGS.flatMap((leg, i) => {
+  const px = (leg.left / 100) * VIEW_W;
+  const py = (leg.top / 100) * VIEW_H;
+  const a = STOPS[i];
+  const b = STOPS[i + 1];
+  return [
+    trimLine(px, py, a.cx, a.cy, 46, a.home ? 22 : 16),
+    trimLine(px, py, b.cx, b.cy, 46, b.home ? 22 : 16),
+  ];
+});
 
 // Meandering route following the river valley, north (top) to south (bottom).
 const TRAIL_PATH =
-  'M 430 79 C 470 120, 540 175, 500 231 C 470 285, 360 330, 400 383 C 445 460, 430 520, 480 581';
+  'M 430 70 C 470 120, 520 165, 490 210 C 455 265, 360 315, 400 360 C 445 415, 540 455, 500 500 C 478 540, 430 570, 440 600';
 
 export function TrailMap() {
   return (
@@ -66,9 +83,9 @@ export function TrailMap() {
       <div className="text-center mb-6">
         <h3 className="mb-2">Find Your Way Along the Trail</h3>
         <p className="text-sm text-[var(--forest-green)]/70 max-w-xl mx-auto">
-          Hop on the Armstrong Trails right from camp and ride north to Kittanning or
-          south toward Ford City and Leechburg. Each label shows the trail distance and
-          ride time between stops.
+          Hop on the Armstrong Trails right from camp — ride south to Leechburg, or north
+          through Ford City and Kittanning and all the way to East Brady. Each label shows
+          the trail distance and ride time between stops.
         </p>
       </div>
 
@@ -78,8 +95,15 @@ export function TrailMap() {
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             className="absolute inset-0 h-full w-full"
             role="img"
-            aria-label="Map of the Armstrong Trails along the Allegheny River. From north to south: Kittanning, White Rock Station, Ford City, and Leechburg, with bike distances between each."
+            aria-label="Map of the Armstrong Trails along the Allegheny River. From north to south: East Brady, Kittanning, Ford City, White Rock Station, and Leechburg, with approximate bike distances between each."
           >
+            <defs>
+              {/* small arrowhead pointing at each town */}
+              <marker id="wrs-conn-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 Z" fill="var(--river-blue)" opacity="0.55" />
+              </marker>
+            </defs>
+
             {/* map backdrop */}
             <rect x="0" y="0" width={VIEW_W} height={VIEW_H} rx="16" fill="var(--off-white)" stroke="var(--sand-tan)" strokeWidth="2" />
 
@@ -93,10 +117,10 @@ export function TrailMap() {
             {/* the Armstrong Trails — animated "redraw" along the river */}
             <path className="wrs-trail-line" d={TRAIL_PATH} pathLength={1000} fill="none" stroke="var(--warm-brown)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
 
-            {/* faint connectors linking each margin pill back to its trail leg */}
-            <g stroke="var(--river-blue)" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.4">
+            {/* dotted connectors — each pill points to the two towns it spans */}
+            <g stroke="var(--river-blue)" strokeWidth="1.5" strokeDasharray="2 5" strokeLinecap="round" opacity="0.45">
               {CONNECTORS.map((c, i) => (
-                <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} />
+                <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} markerEnd="url(#wrs-conn-arrow)" />
               ))}
             </g>
 
@@ -161,6 +185,17 @@ export function TrailMap() {
           ))}
         </div>
       </div>
+
+      <p className="text-center text-sm mt-5">
+        <a
+          href="https://armstrongtrails.org/wp-content/uploads/2025/03/Final-Trail-mapJune-2024-1-scaled.jpg"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--river-blue)] underline hover:opacity-80"
+        >
+          View the full official Armstrong Trails map →
+        </a>
+      </p>
     </div>
   );
 }

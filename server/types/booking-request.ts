@@ -51,6 +51,10 @@ export interface Booking {
   refundedAt?: string;
   cleaningEmailSentAt?: string;
 
+  // Scheduled guest emails (sent once each by the guest-emails cron)
+  directionsSentAt?: string;  // EMAIL 3, day before check-in
+  checkinDaySentAt?: string;  // EMAIL 4, ~3 PM on arrival day
+
   // Cleaner assigned to this stay's cleaning (day after checkout)
   assignedCleanerId?: string;
 
