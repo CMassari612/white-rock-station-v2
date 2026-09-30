@@ -118,7 +118,7 @@ function parseYMD(ymd: string): Date {
 }
 function isWeekendNight(date: Date): boolean {
   const day = date.getUTCDay();
-  return day === 5 || day === 6; // Fri, Sat
+  return day === 5 || day === 6 || day === 0; // Fri, Sat, Sun (weekend = Fri–Sun)
 }
 
 export function computePriceBreakdown(unit: Unit, startDate: string, endDate: string): PriceBreakdown | null {
@@ -152,8 +152,8 @@ export function computePriceBreakdown(unit: Unit, startDate: string, endDate: st
   const totalCents = lodgingCents + cleaningFeeCents + taxCents;
 
   const lines: PriceLine[] = [];
-  if (weekdayNights > 0) lines.push({ label: `Weekday nights (${weekdayNights} × ${dollars(weekday)})`, amountCents: weekdayNights * weekday });
-  if (weekendNights > 0) lines.push({ label: `Weekend nights (${weekendNights} × ${dollars(weekend)})`, amountCents: weekendNights * weekend });
+  if (weekdayNights > 0) lines.push({ label: `Mon–Thu nights (${weekdayNights} × ${dollars(weekday)})`, amountCents: weekdayNights * weekday });
+  if (weekendNights > 0) lines.push({ label: `Fri–Sun nights (${weekendNights} × ${dollars(weekend)})`, amountCents: weekendNights * weekend });
   if (cleaningFeeCents > 0) lines.push({ label: 'Cleaning fee', amountCents: cleaningFeeCents });
   if (taxCents > 0) lines.push({ label: 'Lodging tax (5%)', amountCents: taxCents });
 

@@ -91,6 +91,22 @@
 .wrs-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wrs-gallery__hero { grid-row: span 2; }
 
+/* Gallery v2 — hero + hover-to-open thumbnail grid */
+.wrs-gallery2 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; border-radius: var(--wrs-radius); overflow: hidden; }
+.wrs-gallery2__hero { height: 440px; width: 100%; padding: 0; border: 0; cursor: pointer; overflow: hidden; background: var(--wrs-line); }
+.wrs-gallery2__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wrs-gallery2__side { position: relative; cursor: pointer; }
+.wrs-gallery2__grid { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 215px; gap: 10px; }
+.wrs-gallery2__grid img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 6px; }
+.wrs-gallery2__overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.45); opacity: 0; transition: opacity 0.2s ease; border-radius: 6px; }
+.wrs-gallery2__side:hover .wrs-gallery2__overlay, .wrs-gallery2__side:focus-within .wrs-gallery2__overlay { opacity: 1; }
+.wrs-gallery2__btn { background: #fff; color: var(--wrs-ink); padding: 11px 20px; border: 0; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+@media (max-width: 860px) {
+  .wrs-gallery2 { grid-template-columns: 1fr; }
+  .wrs-gallery2__hero { height: 260px; }
+  .wrs-gallery2__grid { grid-auto-rows: 120px; }
+}
+
 /* Form controls */
 .wrs-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .wrs-label { font-size: 14px; font-weight: 700; color: var(--wrs-ink); }

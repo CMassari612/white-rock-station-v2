@@ -74,11 +74,22 @@ export async function mailGuestApproved(b: Booking, arrival: ArrivalInfo = {}): 
   const addrText = addr ? ` Address: ${addr}.` : '';
   const dirText = dir ? ` Getting here: ${dir}.` : '';
 
+  const cancelHtml =
+    `<hr style="border:none;border-top:1px solid #eee;margin:18px 0" />` +
+    `<p style="font-size:13px;color:#555;line-height:1.5"><b>Cancellation policy (Firm):</b><br>` +
+    `Full refund if you cancel 30 or more days before check-in · 50% refund 7&ndash;30 days before · no refund within 7 days of check-in.<br>` +
+    `You may also get a full refund if you cancel within 24 hours of booking, as long as it was booked at least 7 days before check-in.<br>` +
+    `To cancel or change your reservation, call or text (724) 882-9195.</p>`;
+  const cancelText =
+    ` Cancellation policy (Firm): full refund 30+ days before check-in; 50% refund 7-30 days before; no refund within 7 days.` +
+    ` Full refund if canceled within 24 hours of booking (when booked 7+ days before check-in).` +
+    ` To cancel, call or text (724) 882-9195.`;
+
   await send(
     b.email,
     'Your White Rock Station booking is confirmed',
-    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p>${dirHtml}${mapHtml}${parkHtml}<p>See you on the river!<br>White Rock Station</p>`,
-    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.${dirText}`
+    `<h2>You're booked, ${b.name}!</h2><p>Your stay is confirmed and your payment has been processed.</p><p><b>${stay(b)}</b></p>${addrHtml}<p>Total ${money(b.totalCents)}. Check-in from 3:00 PM · Check-out by 10:00 AM.</p>${dirHtml}${mapHtml}${parkHtml}<p>See you on the river!<br>White Rock Station</p>${cancelHtml}`,
+    `You're booked, ${b.name}! Confirmed: ${stay(b)}.${addrText} Total ${money(b.totalCents)}. Check-in 3 PM, check-out 10 AM.${dirText}${cancelText}`
   );
 }
 

@@ -18,7 +18,7 @@ export function Footer({ onNavigate }: FooterProps) {
             />
             <p className="text-[var(--sand-tan)] text-sm tracking-wide mb-4">Riverfront Resort &amp; Marina</p>
             <p className="text-white/80 text-sm leading-relaxed">
-              Riverfront cottages and river access along the Armstrong Trail. Your riverside escape awaits.
+              Riverfront cottages and river access along the Armstrong Trails. Your riverside escape awaits.
             </p>
             {/* Hidden staff shortcut: invisible button that opens the admin login.
                 Size is set via inline styles (no Tailwind compiler) so the empty
@@ -51,10 +51,13 @@ export function Footer({ onNavigate }: FooterProps) {
                 Cottages
               </button>
               <button onClick={() => onNavigate('trail')} className="text-white/80 hover:text-white text-left text-sm">
-                Armstrong Trail
+                Armstrong Trails
               </button>
               <button onClick={() => onNavigate('amenities')} className="text-white/80 hover:text-white text-left text-sm">
                 Amenities
+              </button>
+              <button onClick={() => onNavigate('store')} className="text-white/80 hover:text-white text-left text-sm">
+                Camp Store
               </button>
             </div>
           </div>
@@ -65,7 +68,7 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="flex flex-col space-y-3">
               <div className="flex items-start space-x-2 text-sm">
                 <MapPin size={16} className="mt-1 flex-shrink-0" />
-                <span className="text-white/80">395 Silvis Hollow Rd, Kittanning, PA 16201</span>
+                <span className="text-white/80">372 T404, Vandergrift, PA 15690</span>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Phone size={16} className="flex-shrink-0" />
@@ -90,8 +93,7 @@ export function Footer({ onNavigate }: FooterProps) {
               </a>
             </div>
             <div className="text-sm text-white/80">
-              <p>Cabins &amp; Campsites: Open Year-Round</p>
-              <p className="mt-1">Marina: Weather dependent</p>
+              <p>Marina: Weather dependent</p>
             </div>
           </div>
         </div>
@@ -102,9 +104,9 @@ export function Footer({ onNavigate }: FooterProps) {
             © 2026 White Rock Station. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
-            <button className="text-white/60 hover:text-white">Privacy Policy</button>
-            <button className="text-white/60 hover:text-white">Terms of Service</button>
-            <button className="text-white/60 hover:text-white">Cancellation Policy</button>
+            <button className="text-white/60 hover:text-white" onClick={() => onNavigate('privacy')}>Privacy Policy</button>
+            <button className="text-white/60 hover:text-white" onClick={() => onNavigate('terms')}>Terms of Service</button>
+            <button className="text-white/60 hover:text-white" onClick={() => onNavigate('cancellation')}>Cancellation Policy</button>
           </div>
         </div>
       </div>

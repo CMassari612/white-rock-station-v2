@@ -102,3 +102,34 @@ export async function writeCollection<T>(key: string, value: T[]): Promise<void>
     'utf-8'
   );
 }
+
+// Generic single-document (object) read/write for key/value config like site text.
+export async function readDoc<T>(key: string): Promise<T | null> {
+  if (usePostgres()) {
+    const pool = await getPool();
+    const { rows } = await pool.query('SELECT value FROM kv_store WHERE key = $1', [key]);
+    if (rows.length === 0) return null;
+    return rows[0].value as T;
+  }
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    const data = await fs.readFile(path.join(DATA_DIR, `${key}.json`), 'utf-8');
+    return JSON.parse(data) as T;
+  } catch (error: any) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+export async function writeDoc<T>(key: string, value: T): Promise<void> {
+  if (usePostgres()) {
+    const pool = await getPool();
+    await pool.query(
+      'INSERT INTO kv_store (key, value) VALUES ($1, $2::jsonb) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value',
+      [key, JSON.stringify(value)]
+    );
+    return;
+  }
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(path.join(DATA_DIR, `${key}.json`), JSON.stringify(value, null, 2), 'utf-8');
+}

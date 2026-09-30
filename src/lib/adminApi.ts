@@ -57,6 +57,35 @@ async function call(path: string, method = 'GET', body?: any) {
   return data;
 }
 
+// ---- Store / merch ----
+export interface AdminStoreProduct {
+  id: string; name: string; priceCents: number; blurb: string;
+  accent: string; image: string; active?: boolean; updatedAt?: string;
+}
+export async function adminGetStore(): Promise<AdminStoreProduct[]> {
+  return (await call('/api/admin/store')).products;
+}
+export async function adminUpdateStoreProduct(id: string, patch: Partial<AdminStoreProduct>): Promise<AdminStoreProduct> {
+  return (await call(`/api/admin/store/${encodeURIComponent(id)}`, 'PATCH', patch)).product;
+}
+export async function adminAddStoreProduct(body: Partial<AdminStoreProduct>): Promise<AdminStoreProduct> {
+  return (await call('/api/admin/store', 'POST', body)).product;
+}
+export async function adminDeleteStoreProduct(id: string): Promise<void> {
+  await call(`/api/admin/store/${encodeURIComponent(id)}`, 'DELETE');
+}
+export async function adminUploadStorePhoto(id: string, blob: Blob): Promise<AdminStoreProduct> {
+  const res = await fetch(`${API_URL}/api/admin/store/${encodeURIComponent(id)}/photo`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type || 'image/jpeg', 'x-admin-password': getAdminPassword() || '' },
+    body: blob,
+  });
+  if (res.status === 401) { const e: any = new Error('Unauthorized'); e.status = 401; throw e; }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
+  return data.product as AdminStoreProduct;
+}
+
 // Login (no auth header) — returns the role for the submitted password.
 export async function staffLogin(password: string): Promise<{ role: 'admin' | 'cleaner'; name: string }> {
   let res: Response;

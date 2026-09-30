@@ -8,7 +8,7 @@ interface Props {
 const GROUP_ORDER = ['Allegheny Shore', 'Riverview Village'];
 const GROUP_BLURB: Record<string, string> = {
   'Allegheny Shore': 'Our riverfront cottage, right on the water.',
-  'Riverview Village': 'Trailfront cottages and studios with river views, steps from the Armstrong Trail.',
+  'Riverview Village': 'Trailfront cottages and studios with river views, steps from the Armstrong Trails.',
 };
 
 export function CottagesPage({ onNavigate }: Props) {
@@ -32,7 +32,7 @@ export function CottagesPage({ onNavigate }: Props) {
           <p className="wrs-eyebrow" style={{ color: 'var(--wrs-tan)' }}>Stay With Us</p>
           <h1 className="wrs-h1" style={{ color: '#fff' }}>Riverside Cottages</h1>
           <p className="wrs-hero__sub" style={{ marginBottom: 0 }}>
-            Comfortable, fully-equipped cottages along the Allegheny River and the Armstrong Trail — book directly with us.
+            Comfortable, fully-equipped cottages along the Allegheny River and the Armstrong Trails — book directly with us.
           </p>
         </div>
       </section>

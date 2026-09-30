@@ -1,5 +1,6 @@
-import { Store, Fuel, Shield, Wifi, Dog, Flame } from 'lucide-react';
+import { Store, Fuel, Shield, Wifi, Flame } from 'lucide-react';
 import { CTAButton } from '../components/CTAButton';
+import { Ed } from '../lib/siteText';
 
 interface AmenitiesPageProps {
   onNavigate: (page: string) => void;
@@ -20,8 +21,8 @@ export function AmenitiesPage({ onNavigate }: AmenitiesPageProps) {
         </div>
         
         <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-white mb-4">Amenities & Services</h1>
-          <p className="text-xl text-white/90">Everything You Need for a Perfect Stay</p>
+          <Ed as="h1" id="amenities.hero.title" className="text-white mb-4">Amenities & Services</Ed>
+          <Ed as="p" id="amenities.hero.sub" className="text-xl text-white/90">Everything You Need for a Perfect Stay</Ed>
         </div>
       </section>
 
@@ -41,9 +42,9 @@ export function AmenitiesPage({ onNavigate }: AmenitiesPageProps) {
               <div className="w-16 h-16 bg-[var(--river-blue)] rounded-full flex items-center justify-center mb-4">
                 <Store size={32} className="text-white" />
               </div>
-              <h4 className="mb-3">Camp Store</h4>
+              <h4 className="mb-3">Johnetta Supply</h4>
               <p className="text-[var(--forest-green)]/70">
-                24/7 honor system store with camping essentials, snacks, and supplies
+                Seasonal camp store with essentials, snacks, cold drinks, firewood, and White Rock merch
               </p>
             </div>
 
@@ -86,73 +87,69 @@ export function AmenitiesPage({ onNavigate }: AmenitiesPageProps) {
                 24/7 surveillance and on-site management for your peace of mind
               </p>
             </div>
-
-            <div className="bg-white border border-[var(--sand-tan)] rounded-lg p-6 hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-[var(--river-blue)] rounded-full flex items-center justify-center mb-4">
-                <Dog size={32} className="text-white" />
-              </div>
-              <h4 className="mb-3">Pet-Friendly</h4>
-              <p className="text-[var(--forest-green)]/70">
-                Designated pet-friendly areas for your four-legged companions
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Camp Store Details */}
+      {/* Johnetta Supply */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 rounded-lg overflow-hidden shadow-xl">
-              <img 
-                src="https://images.unsplash.com/photo-1633791434582-69ca174b31f0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYW1wZmlyZSUyMGNhbXBpbmd8ZW58MXx8fHwxNzYzMTczOTMwfDA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Campfire"
+              <img
+                src="/images/store/store-10.jpg"
+                alt="Johnetta Supply camp store at White Rock Station"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="mb-6">Camp Store</h2>
+              <h2 className="mb-6">Johnetta Supply</h2>
               <p className="mb-6">
-                Our honor system camp store is available 24/7 for your convenience. Stocked with 
-                camping essentials, snacks, and supplies you might need during your stay.
+                Johnetta Supply is our seasonal camp store, stocked with everyday camping essentials,
+                snacks, cold drinks, firewood, and a few things you may have forgotten at home. You'll
+                also find White Rock Station hats, T-shirts, sweatshirts, and other merchandise to take
+                home from your time along the Allegheny.
               </p>
               <div className="bg-[var(--sand-tan)]/30 p-6 rounded-lg mb-6">
-                <h5 className="mb-3">Available Items</h5>
+                <h5 className="mb-3">What You'll Find</h5>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Camping supplies</span>
+                      <span>Camping essentials</span>
                     </li>
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Snacks & beverages</span>
+                      <span>Snacks & cold drinks</span>
                     </li>
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Ice & firewood</span>
+                      <span>Firewood</span>
                     </li>
                   </ul>
                   <ul className="space-y-2">
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Toiletries</span>
+                      <span>Hats, tees & sweatshirts</span>
                     </li>
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Bug spray & sunscreen</span>
+                      <span>Mugs & drinkware</span>
                     </li>
                     <li className="flex items-start">
                       <span className="text-[var(--river-blue)] mr-2">•</span>
-                      <span>Basic groceries</span>
+                      <span>White Rock merch</span>
                     </li>
                   </ul>
                 </div>
               </div>
-              <p className="text-sm text-[var(--forest-green)]/70">
-                Operating on an honor system with automated checkout for your convenience.
+              <p className="text-sm text-[var(--forest-green)]/70 mb-6">
+                Seasonal store hours vary. Select White Rock Station apparel and merchandise is also
+                available to purchase online.
               </p>
+              <CTAButton onClick={() => onNavigate('store')} className="h-11 px-7">
+                Visit the Store
+              </CTAButton>
             </div>
           </div>
         </div>
@@ -251,67 +248,6 @@ export function AmenitiesPage({ onNavigate }: AmenitiesPageProps) {
         </div>
       </section>
 
-      {/* Pet Policy */}
-      <section className="py-16 px-4 bg-[var(--sand-tan)]/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg p-8 md:p-12">
-            <div className="text-center mb-8">
-              <Dog size={64} className="mx-auto mb-6 text-[var(--river-blue)]" />
-              <h2 className="mb-4">Pet-Friendly Policy</h2>
-              <p className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">
-                We welcome your furry friends! Designated pet-friendly cabins and campsites are 
-                available so the whole family can enjoy the outdoors together.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h5 className="mb-3">Pet-Friendly Areas</h5>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">✓</span>
-                    <span>Select cabins allow pets</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">✓</span>
-                    <span>Designated pet-friendly campsites</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">✓</span>
-                    <span>Walking trails throughout property</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">✓</span>
-                    <span>River access for swimming</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h5 className="mb-3">Pet Guidelines</h5>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">•</span>
-                    <span>Pets must be leashed in common areas</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">•</span>
-                    <span>Clean up after your pet</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">•</span>
-                    <span>Maximum 2 pets per cabin/site</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-[var(--river-blue)] mr-2">•</span>
-                    <span>Additional pet fee applies</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="py-16 px-4 bg-[var(--forest-green)] text-white">

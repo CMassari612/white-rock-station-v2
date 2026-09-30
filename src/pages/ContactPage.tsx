@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Calendar } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Ed } from '../lib/siteText';
 import { CTAButton } from '../components/CTAButton';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -17,8 +18,9 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     message: '',
   });
 
-  const mapAddress = '395 Silvis Hollow Rd, Kittanning, PA 16201';
-  const mapsLink = `https://maps.google.com/?q=${encodeURIComponent(mapAddress)}`;
+  // Exact map pin (drops on the property, not a geocoded street address)
+  const mapPin = '40.698148,-79.605329';
+  const mapsLink = `https://maps.google.com/?q=${mapPin}`;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +43,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
         </div>
         
         <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-white mb-4">Get In Touch</h1>
-          <p className="text-xl text-white/90">We're here to help plan your perfect getaway</p>
+          <Ed as="h1" id="contact.hero.title" className="text-white mb-4">Get In Touch</Ed>
+          <Ed as="p" id="contact.hero.sub" className="text-xl text-white/90">We're here to help plan your perfect getaway</Ed>
         </div>
       </section>
 
@@ -66,8 +68,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   <div>
                     <h5 className="mb-1">Address</h5>
                     <p className="text-[var(--forest-green)]/70">
-                      395 Silvis Hollow Rd<br />
-                      Kittanning, PA 16201
+                      372 T404<br />
+                      Vandergrift, PA 15690
                     </p>
                   </div>
                 </div>
@@ -116,7 +118,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   <div>
                     <h5 className="mb-1">Season</h5>
                     <p className="text-[var(--forest-green)]/70">
-                      Cabins & Camping: Year-Round<br />
                       Marina: April - October
                     </p>
                   </div>
@@ -202,7 +203,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
           <div className="bg-white rounded-lg overflow-hidden shadow-lg">
             <iframe
               title="White Rock Station location map"
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapAddress)}&z=14&output=embed`}
+              src={`https://maps.google.com/maps?q=${mapPin}&z=15&output=embed`}
               className="block aspect-video w-full border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -218,15 +219,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             >
               Open in Google Maps →
             </a>
-          </div>
-
-          <div className="mt-8 text-center">
-            <h5 className="mb-4">Directions</h5>
-            <p className="max-w-2xl mx-auto text-[var(--forest-green)]/70">
-              Located along the Allegheny River, just off Route 85. Easily accessible from 
-              Pittsburgh (1 hour), Erie (2 hours), and Cleveland (2.5 hours). Follow signs 
-              for the Armstrong Trail.
-            </p>
           </div>
         </div>
       </section>

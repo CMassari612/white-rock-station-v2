@@ -20,7 +20,7 @@ const CONFIG: Record<string, { unitType: 'small_cabin' | 'large_cabin'; price: n
   'large-cabin': { unitType: 'large_cabin', price: 250, title: 'Our Large Cabins', guests: 4, beds: 2, baths: 1 },
 };
 
-const DEFAULT_DESCRIPTION = 'Cozy riverside cabin steps from the Allegheny River and Armstrong Trail.';
+const DEFAULT_DESCRIPTION = 'Cozy riverside cabin steps from the Allegheny River and Armstrong Trails.';
 
 function CabinCard({
   unit, cfg, onOpen,

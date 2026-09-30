@@ -24,7 +24,7 @@ interface Place {
 const PLACES: Place[] = [
   {
     name: 'White Rock Station Marina',
-    query: '395 Silvis Hollow Rd, Kittanning, PA 16201',
+    query: '40.698148, -79.605329',
     type: 'marina',
     desc: 'Our riverfront marina — boat slips, fuel dock, and launch.',
   },

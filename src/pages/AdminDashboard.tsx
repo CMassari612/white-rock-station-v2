@@ -8,7 +8,8 @@ import {
   adminGetUnits, adminUpdateUnit, adminAddUnit, adminDeleteUnit, adminAddBlock, adminRemoveBlock, adminWinterClosure,
   adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
   adminSyncAirbnb,
-  AdminBooking, Cleaner, CleaningRow, AdminUnit,
+  adminGetStore, adminUpdateStoreProduct, adminAddStoreProduct, adminDeleteStoreProduct, adminUploadStorePhoto,
+  AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct,
 } from '../lib/adminApi';
 
 // Downscale + compress an image in the browser before upload (keeps pages fast
@@ -39,7 +40,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending_approval: '#b7791f', confirmed: '#2f7a4f', pending: '#7a7a7a', cancelled: '#b23b3b', expired: '#999', refunded: '#b23b3b',
 };
 
-type Tab = 'bookings' | 'sites' | 'cleaning' | 'cleaners';
+type Tab = 'bookings' | 'sites' | 'store' | 'cleaning';
 
 export function AdminDashboard({ onNavigate }: Props) {
   const role = getRole() || 'admin';
@@ -50,6 +51,7 @@ export function AdminDashboard({ onNavigate }: Props) {
   const [units, setUnits] = useState<AdminUnit[]>([]);
   const [schedule, setSchedule] = useState<CleaningRow[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
+  const [products, setProducts] = useState<AdminStoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const loadedRef = useRef(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -72,10 +74,10 @@ export function AdminDashboard({ onNavigate }: Props) {
     try {
       if (isAdmin) {
         // One round-trip: fetch everything in parallel instead of sequentially.
-        const [sched, b, c, u] = await Promise.all([
-          getCleaningSchedule(), adminGetBookings(), getCleaners(), adminGetUnits(),
+        const [sched, b, c, u, sp] = await Promise.all([
+          getCleaningSchedule(), adminGetBookings(), getCleaners(), adminGetUnits(), adminGetStore(),
         ]);
-        setSchedule(sched); setBookings(b); setCleaners(c); setUnits(u);
+        setSchedule(sched); setBookings(b); setCleaners(c); setUnits(u); setProducts(sp);
       } else {
         setSchedule(await getCleaningSchedule());
       }
@@ -136,8 +138,8 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
               {isAdmin && tabBtn('bookings', 'Bookings')}
               {isAdmin && tabBtn('sites', 'Sites')}
+              {isAdmin && tabBtn('store', 'Store')}
               {tabBtn('cleaning', 'Cleaning Schedule')}
-              {isAdmin && tabBtn('cleaners', 'Cleaners')}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -281,55 +283,130 @@ export function AdminDashboard({ onNavigate }: Props) {
           </>
         )}
 
-        {!loading && isAdmin && tab === 'cleaners' && (
-          <>
-            <h2 className="wrs-h3">Cleaner accounts</h2>
-            <p className="wrs-muted" style={{ marginTop: 0 }}>Cleaners sign in with their password and see only the site address and checkout date for each booking.</p>
-
-            <div className="wrs-card" style={{ padding: 16, marginTop: 10, marginBottom: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 10, alignItems: 'end' }}>
-                <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Name</label><input className="wrs-input" value={newCleaner.name} onChange={e => setNewCleaner({ ...newCleaner, name: e.target.value })} placeholder="Jane Cleaner" /></div>
-                <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Mobile (optional)</label><input className="wrs-input" value={newCleaner.phone} onChange={e => setNewCleaner({ ...newCleaner, phone: e.target.value })} placeholder="(724) 555-0100" /></div>
-                <div className="wrs-field" style={{ marginBottom: 0 }}>
-                  <label className="wrs-label">Login password</label>
-                  <div style={{ position: 'relative' }}>
-                    <input className="wrs-input" type={showNewPw ? 'text' : 'password'} style={{ paddingRight: 38 }} value={newCleaner.password} onChange={e => setNewCleaner({ ...newCleaner, password: e.target.value })} placeholder="set a password" />
-                    <button type="button" aria-label={showNewPw ? 'Hide password' : 'Show password'} onClick={() => setShowNewPw(v => !v)} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wrs-muted)', display: 'flex' }}>{showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                  </div>
-                </div>
-                <button className="wrs-btn wrs-btn-green" style={{ padding: '11px 18px' }} onClick={createCleaner}>Add cleaner</button>
-              </div>
-            </div>
-
-            <div className="wrs-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                <thead><tr style={{ textAlign: 'left', background: 'var(--wrs-offwhite)' }}>
-                  <th style={{ padding: '10px 12px' }}>Name</th><th style={{ padding: '10px 12px' }}>Mobile</th><th style={{ padding: '10px 12px' }}>Password</th><th style={{ padding: '10px 12px' }}></th>
-                </tr></thead>
-                <tbody>
-                  {cleaners.map(c => (
-                    <tr key={c.id} style={{ borderTop: '1px solid var(--wrs-line)' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700 }}>{c.name}</td>
-                      <td style={{ padding: '10px 12px' }} className="wrs-muted">{c.phone || '—'}</td>
-                      <td style={{ padding: '10px 12px' }} className="wrs-muted">
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontFamily: 'monospace' }}>{revealed[c.id] ? c.password : '••••••••'}</span>
-                          <button type="button" aria-label={revealed[c.id] ? 'Hide password' : 'Show password'} onClick={() => setRevealed(r => ({ ...r, [c.id]: !r[c.id] }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wrs-muted)', display: 'flex' }}>{revealed[c.id] ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}><button className="wrs-btn wrs-btn-outline" style={{ padding: '6px 12px', borderColor: '#c0392b', color: '#c0392b' }} onClick={() => removeCleaner(c.id)}>Remove</button></td>
-                    </tr>
-                  ))}
-                  {cleaners.length === 0 && <tr><td colSpan={4} style={{ padding: 16 }} className="wrs-muted">No cleaner accounts yet.</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </>
+        {!loading && isAdmin && tab === 'store' && (
+          <StoreManager products={products} onChanged={load} onError={setError} />
         )}
       </div>
 
       {showWinter && <WinterClosureModal units={units} onClose={() => setShowWinter(false)} onDone={async () => { setShowWinter(false); await load(); }} onError={setError} />}
       {showAddSite && <AddSiteModal onClose={() => setShowAddSite(false)} onDone={async () => { setShowAddSite(false); await load(); }} onError={setError} />}
+    </div>
+  );
+}
+
+// ---- Store / merch manager ----
+function StoreManager({ products, onChanged, onError }: { products: AdminStoreProduct[]; onChanged: () => Promise<void> | void; onError: (m: string) => void }) {
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+
+  async function addProduct() {
+    if (!newName.trim()) { onError('Product needs a name.'); return; }
+    try {
+      await adminAddStoreProduct({ name: newName.trim(), priceCents: Math.max(0, Math.round(Number(newPrice || 0) * 100)) });
+      setNewName(''); setNewPrice(''); setAdding(false);
+      await onChanged();
+    } catch (e: any) { onError(e?.message || 'Could not add product'); }
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+        <div>
+          <h2 className="wrs-h3" style={{ marginBottom: 2 }}>Store products</h2>
+          <p className="wrs-muted" style={{ margin: 0 }}>Edit prices, descriptions and photos. Price changes apply to Stripe checkout automatically.</p>
+        </div>
+        <button className="wrs-btn wrs-btn-green" style={{ padding: '10px 16px' }} onClick={() => setAdding(a => !a)}><Plus size={16} /> Add product</button>
+      </div>
+
+      {adding && (
+        <div className="wrs-card" style={{ padding: 16, marginBottom: 16, display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: 10, alignItems: 'end' }}>
+          <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Name</label><input className="wrs-input" value={newName} onChange={e => setNewName(e.target.value)} placeholder="New product" /></div>
+          <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Price ($)</label><input className="wrs-input" type="number" min="0" step="0.01" value={newPrice} onChange={e => setNewPrice(e.target.value)} placeholder="0.00" /></div>
+          <button className="wrs-btn wrs-btn-green" style={{ padding: '11px 18px' }} onClick={addProduct}>Create</button>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gap: 14 }}>
+        {products.map(p => <StoreRow key={p.id} product={p} onChanged={onChanged} onError={onError} />)}
+        {products.length === 0 && <p className="wrs-muted">No products yet. Add one to get started.</p>}
+      </div>
+    </>
+  );
+}
+
+function StoreRow({ product, onChanged, onError }: { product: AdminStoreProduct; onChanged: () => Promise<void> | void; onError: (m: string) => void }) {
+  const [name, setName] = useState(product.name);
+  const [price, setPrice] = useState(((product.priceCents ?? 0) / 100).toString());
+  const [blurb, setBlurb] = useState(product.blurb || '');
+  const [active, setActive] = useState(product.active !== false);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const dirty =
+    name !== product.name ||
+    Math.max(0, Math.round(Number(price || 0) * 100)) !== (product.priceCents ?? 0) ||
+    blurb !== (product.blurb || '') ||
+    active !== (product.active !== false);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await adminUpdateStoreProduct(product.id, {
+        name: name.trim(),
+        priceCents: Math.max(0, Math.round(Number(price || 0) * 100)),
+        blurb,
+        active,
+      });
+      await onChanged();
+    } catch (e: any) { onError(e?.message || 'Save failed'); }
+    finally { setSaving(false); }
+  }
+  async function onFile(files: FileList | null) {
+    const file = files && files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploading(true);
+    try {
+      const blob = await optimizeImage(file, 1600, 0.85);
+      await adminUploadStorePhoto(product.id, blob);
+      await onChanged();
+    } catch (e: any) { onError(e?.message || 'Upload failed'); }
+    finally { setUploading(false); }
+  }
+  async function del() {
+    if (!window.confirm(`Delete "${product.name}"? This removes it from the store.`)) return;
+    try { await adminDeleteStoreProduct(product.id); await onChanged(); }
+    catch (e: any) { onError(e?.message || 'Delete failed'); }
+  }
+
+  return (
+    <div className="wrs-card" style={{ padding: 16, display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16 }}>
+      <div>
+        <div style={{ width: 120, height: 90, borderRadius: 8, overflow: 'hidden', background: 'var(--wrs-offwhite)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {product.image
+            ? <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span className="wrs-muted" style={{ fontSize: 12 }}>No photo</span>}
+        </div>
+        <label className="wrs-btn wrs-btn-outline" style={{ marginTop: 8, padding: '6px 10px', fontSize: 13, cursor: 'pointer', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <Upload size={14} /> {uploading ? 'Uploading…' : 'Photo'}
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { onFile(e.target.files); e.currentTarget.value = ''; }} />
+        </label>
+      </div>
+      <div>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: 10, alignItems: 'end' }}>
+          <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Name</label><input className="wrs-input" value={name} onChange={e => setName(e.target.value)} /></div>
+          <div className="wrs-field" style={{ marginBottom: 0 }}><label className="wrs-label">Price ($)</label><input className="wrs-input" type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} /></div>
+          <label className="wrs-check" style={{ alignItems: 'center', marginBottom: 8, whiteSpace: 'nowrap' }}><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> <span>Active</span></label>
+        </div>
+        <div className="wrs-field" style={{ marginTop: 10, marginBottom: 0 }}>
+          <label className="wrs-label">Description</label>
+          <textarea className="wrs-input" rows={2} value={blurb} onChange={e => setBlurb(e.target.value)} placeholder="Short description shown on the store card" />
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <button className="wrs-btn wrs-btn-green" style={{ padding: '8px 16px' }} disabled={!dirty || saving} onClick={save}>{saving ? 'Saving…' : 'Save'}</button>
+          <button className="wrs-btn wrs-btn-outline" style={{ padding: '8px 16px', borderColor: '#c0392b', color: '#c0392b' }} onClick={del}>Delete</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -342,6 +419,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
   const [guests, setGuests] = useState((unit.maxGuests ?? 0).toString());
   const [active, setActive] = useState(unit.active);
   const [address, setAddress] = useState(unit.address || '');
+  const [description, setDescription] = useState(unit.description || '');
   const [saving, setSaving] = useState(false);
 
   const [bStart, setBStart] = useState('');
@@ -436,6 +514,7 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         maxGuests: Math.max(1, Math.trunc(Number(guests) || 1)),
         active,
         address: address.trim(),
+        description: description.trim(),
         directions: directions.trim(),
         airbnbIcalUrl: airbnbUrl.trim(),
       });
@@ -467,8 +546,12 @@ function SiteEditor({ unit, onSaved, onError }: { unit: AdminUnit; onSaved: () =
         </div>
       )}
       <div className="wrs-field" style={{ marginTop: 10, marginBottom: 0 }}>
+        <label className="wrs-label">Description (shown on the cottage page)</label>
+        <textarea className="wrs-input" rows={4} value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe this cottage for guests…" />
+      </div>
+      <div className="wrs-field" style={{ marginTop: 10, marginBottom: 0 }}>
         <label className="wrs-label">Site address (shown to cleaners)</label>
-        <input className="wrs-input" value={address} onChange={e => setAddress(e.target.value)} placeholder="395 Silvis Hollow Rd, Kittanning, PA 16201" />
+        <input className="wrs-input" value={address} onChange={e => setAddress(e.target.value)} placeholder="372 T404, Vandergrift, PA 15690" />
       </div>
       <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 14 }}>
         <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> Visible &amp; bookable on the public site

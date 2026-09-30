@@ -1,7 +1,7 @@
 import { Bike, Tent } from 'lucide-react';
 
 /**
- * Stylized map of the Armstrong Trail along the Allegheny River.
+ * Stylized map of the Armstrong Trails along the Allegheny River.
  * The trail line "redraws" itself on load. Stops run north (top) to
  * south (bottom): Kittanning → White Rock Station → Ford City → Leechburg.
  * Each leg between stops is labeled with its trail distance and an
@@ -66,7 +66,7 @@ export function TrailMap() {
       <div className="text-center mb-6">
         <h3 className="mb-2">Find Your Way Along the Trail</h3>
         <p className="text-sm text-[var(--forest-green)]/70 max-w-xl mx-auto">
-          Hop on the Armstrong Trail right from camp and ride north to Kittanning or
+          Hop on the Armstrong Trails right from camp and ride north to Kittanning or
           south toward Ford City and Leechburg. Each label shows the trail distance and
           ride time between stops.
         </p>
@@ -78,7 +78,7 @@ export function TrailMap() {
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             className="absolute inset-0 h-full w-full"
             role="img"
-            aria-label="Map of the Armstrong Trail along the Allegheny River. From north to south: Kittanning, White Rock Station, Ford City, and Leechburg, with bike distances between each."
+            aria-label="Map of the Armstrong Trails along the Allegheny River. From north to south: Kittanning, White Rock Station, Ford City, and Leechburg, with bike distances between each."
           >
             {/* map backdrop */}
             <rect x="0" y="0" width={VIEW_W} height={VIEW_H} rx="16" fill="var(--off-white)" stroke="var(--sand-tan)" strokeWidth="2" />
@@ -90,7 +90,7 @@ export function TrailMap() {
             {/* the Allegheny River — wide translucent blue band */}
             <path d={TRAIL_PATH} fill="none" stroke="var(--river-blue)" strokeWidth="30" strokeLinecap="round" strokeLinejoin="round" opacity="0.22" />
 
-            {/* the Armstrong Trail — animated "redraw" along the river */}
+            {/* the Armstrong Trails — animated "redraw" along the river */}
             <path className="wrs-trail-line" d={TRAIL_PATH} pathLength={1000} fill="none" stroke="var(--warm-brown)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
 
             {/* faint connectors linking each margin pill back to its trail leg */}

@@ -14,7 +14,7 @@ const testimonials = [
     name: 'Mike Patterson',
     location: 'Cleveland, OH',
     rating: 5,
-    text: 'Perfect spot for trail enthusiasts! Direct access to the Armstrong Trail made our biking trip unforgettable. The marina and facilities are top-notch.',
+    text: 'Perfect spot for trail enthusiasts! Direct access to the Armstrong Trails made our biking trip unforgettable. The marina and facilities are top-notch.',
   },
   {
     id: 3,

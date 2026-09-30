@@ -23,8 +23,9 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const navItems = [
     { label: 'Home', page: 'home' },
     { label: 'Cottages', page: 'cottages' },
-    { label: 'Armstrong Trail', page: 'trail' },
+    { label: 'Armstrong Trails', page: 'trail' },
     { label: 'Amenities', page: 'amenities' },
+    { label: 'Store', page: 'store' },
     { label: 'About & Contact', page: 'contact' },
   ];
 

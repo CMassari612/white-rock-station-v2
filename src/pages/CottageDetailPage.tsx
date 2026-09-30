@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getUnit, computePriceBreakdown, dollars, Unit, CHECK_IN_TIME, CHECK_OUT_TIME } from '../lib/cottages';
 import { setBookingSelection } from '../lib/bookingSelection';
+import { Lightbox } from '../components/Lightbox';
 
 interface Props {
   slug?: string;
@@ -26,6 +27,8 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStart, setGalleryStart] = useState(0);
 
   useEffect(() => {
     if (!slug) { setNotFound(true); setLoading(false); return; }
@@ -65,12 +68,31 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
       <section style={{ background: 'var(--wrs-green)' }}>
         <div className="wrs-container" style={{ paddingTop: 96, paddingBottom: 20 }}>
           <button className="wrs-chip" onClick={() => onNavigate('cottages')} style={{ cursor: 'pointer', marginBottom: 14 }}>← All cottages</button>
-          <div className="wrs-gallery">
-            {photos[0] && <img className="wrs-gallery__hero" src={encodeURI(photos[0])} alt={unit.name} />}
-            {photos.slice(1, 5).map((p, i) => <img key={i} src={encodeURI(p)} alt={`${unit.name} ${i + 2}`} />)}
-          </div>
+          {photos.length > 0 && (
+            <div className="wrs-gallery2" style={photos.length <= 1 ? { gridTemplateColumns: '1fr' } : undefined}>
+              <button className="wrs-gallery2__hero" aria-label="Open photo gallery" onClick={() => { setGalleryStart(0); setGalleryOpen(true); }}>
+                <img src={encodeURI(photos[0])} alt={unit.name} />
+              </button>
+              {photos.length > 1 && (
+                <div className="wrs-gallery2__side" onClick={() => { setGalleryStart(0); setGalleryOpen(true); }}>
+                  <div className="wrs-gallery2__grid">
+                    {photos.slice(1, 5).map((p, i) => <img key={i} src={encodeURI(p)} alt={`${unit.name} ${i + 2}`} />)}
+                  </div>
+                  <div className="wrs-gallery2__overlay">
+                    <button className="wrs-gallery2__btn" onClick={(e) => { e.stopPropagation(); setGalleryStart(0); setGalleryOpen(true); }}>
+                      View full gallery ({photos.length})
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
+
+      {galleryOpen && (
+        <Lightbox images={photos} startIndex={galleryStart} title={unit.name} onClose={() => setGalleryOpen(false)} />
+      )}
 
       <section className="wrs-section">
         <div className="wrs-container">
@@ -108,10 +130,10 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
             <div className="wrs-bookbox">
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
                 <span className="wrs-price">{dollars(unit.weekdayPriceCents ?? 0)}</span>
-                <span className="wrs-muted">/ weekday night</span>
+                <span className="wrs-muted">/ night (Mon–Thu)</span>
               </div>
               <p className="wrs-muted" style={{ marginTop: 0, fontSize: 14 }}>
-                Weekends (Fri–Sat) {dollars(unit.weekendPriceCents ?? 0)}/night · Cleaning fee {dollars(unit.cleaningFeeCents ?? 0)}
+                Fri–Sun {dollars(unit.weekendPriceCents ?? 0)}/night · Cleaning fee {dollars(unit.cleaningFeeCents ?? 0)}
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>

@@ -9,7 +9,10 @@ import { BookingSuccessPage } from './pages/BookingSuccessPage';
 import { BookingCancelPage } from './pages/BookingCancelPage';
 import { TrailPage } from './pages/TrailPage';
 import { AmenitiesPage } from './pages/AmenitiesPage';
+import { CampStorePage } from './pages/CampStorePage';
 import { ContactPage } from './pages/ContactPage';
+import { PrivacyPolicyPage, TermsPage, CancellationPolicyPage } from './pages/PolicyPages';
+import { SiteTextProvider } from './lib/siteText';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { getAdminPassword } from './lib/adminSession';
@@ -17,13 +20,15 @@ import { getAdminPassword } from './lib/adminSession';
 type PageType =
   | 'home' | 'cottages' | 'cottage-detail'
   | 'booking' | 'booking-success' | 'booking-cancel'
-  | 'trail' | 'amenities' | 'contact'
+  | 'trail' | 'amenities' | 'store' | 'contact'
+  | 'privacy' | 'terms' | 'cancellation'
   | 'admin-login' | 'admin';
 
 const PATHS: Record<PageType, string> = {
   home: '/', cottages: '/cottages', 'cottage-detail': '/cottages',
   booking: '/book', 'booking-success': '/booking/success', 'booking-cancel': '/booking/cancel',
-  trail: '/trail', amenities: '/amenities', contact: '/contact',
+  trail: '/trail', amenities: '/amenities', store: '/store', contact: '/contact',
+  privacy: '/privacy', terms: '/terms', cancellation: '/cancellation',
   'admin-login': '/admin/login', admin: '/admin',
 };
 
@@ -44,6 +49,10 @@ export default function App() {
     if (path.startsWith('/cottages')) return setCurrentPage('cottages');
     if (path.startsWith('/trail')) return setCurrentPage('trail');
     if (path.startsWith('/amenities')) return setCurrentPage('amenities');
+    if (path.startsWith('/store')) return setCurrentPage('store');
+    if (path.startsWith('/privacy')) return setCurrentPage('privacy');
+    if (path.startsWith('/terms')) return setCurrentPage('terms');
+    if (path.startsWith('/cancellation')) return setCurrentPage('cancellation');
     if (path.startsWith('/contact')) return setCurrentPage('contact');
     setCurrentPage('home');
   }
@@ -80,6 +89,10 @@ export default function App() {
       case 'booking-cancel': return <BookingCancelPage onNavigate={handleNavigate} />;
       case 'trail': return <TrailPage onNavigate={handleNavigate} />;
       case 'amenities': return <AmenitiesPage onNavigate={handleNavigate} />;
+      case 'store': return <CampStorePage onNavigate={handleNavigate} />;
+      case 'privacy': return <PrivacyPolicyPage />;
+      case 'terms': return <TermsPage />;
+      case 'cancellation': return <CancellationPolicyPage />;
       case 'contact': return <ContactPage onNavigate={handleNavigate} />;
       case 'admin-login': return <AdminLogin onNavigate={handleNavigate} />;
       case 'admin': return <AdminDashboard onNavigate={handleNavigate} />;
@@ -88,10 +101,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden">
-      {!isAdminArea && <Navigation currentPage={currentPage} onNavigate={handleNavigate} />}
-      <main className="flex-grow overflow-x-hidden">{renderPage()}</main>
-      {!isAdminArea && <Footer onNavigate={handleNavigate} />}
-    </div>
+    <SiteTextProvider showEditor={!isAdminArea}>
+      <div className="min-h-screen flex flex-col overflow-x-hidden">
+        {!isAdminArea && <Navigation currentPage={currentPage} onNavigate={handleNavigate} />}
+        <main className="flex-grow overflow-x-hidden">{renderPage()}</main>
+        {!isAdminArea && <Footer onNavigate={handleNavigate} />}
+      </div>
+    </SiteTextProvider>
   );
 }

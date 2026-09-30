@@ -93,7 +93,7 @@
   }
 }
 
-/* Trail Map — animated "redraw" of the Armstrong Trail */
+/* Trail Map — animated "redraw" of the Armstrong Trails */
 @keyframes wrsTrailDraw {
   to {
     stroke-dashoffset: 0;

@@ -1,6 +1,7 @@
 import { Bike, Users, Map, MapPin } from 'lucide-react';
 import { CTAButton } from '../components/CTAButton';
 import { StatCard } from '../components/StatCard';
+import { Ed } from '../lib/siteText';
 import { TrailMap } from '../components/TrailMap';
 
 interface TrailPageProps {
@@ -24,8 +25,8 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
         </div>
         
         <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-white mb-4">Armstrong Trail</h1>
-          <p className="text-xl text-white/90">Pennsylvania's Premier Rail-Trail</p>
+          <Ed as="h1" id="trail.hero.title" className="text-white mb-4">Armstrong Trails</Ed>
+          <Ed as="p" id="trail.hero.sub" className="text-xl text-white/90">Pennsylvania's Premier Rail-Trail</Ed>
         </div>
       </section>
 
@@ -35,7 +36,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
           <div className="text-center mb-12">
             <h2 className="mb-4">Direct Access to Adventure</h2>
             <p className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">
-              White Rock Station offers direct access to the Armstrong Trail, one of Pennsylvania's 
+              White Rock Station offers direct access to the Armstrong Trails, one of Pennsylvania's 
               most popular rail-trails. Perfect for biking, hiking, and exploring the scenic Allegheny Valley.
             </p>
           </div>
@@ -60,9 +61,9 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h3 className="mb-6">About the Armstrong Trail</h3>
+              <h3 className="mb-6">About the Armstrong Trails</h3>
               <p className="mb-4">
-                The Armstrong Trail is a 52-mile non-motorized rail-trail that follows the scenic 
+                The Armstrong Trails is a 52-mile non-motorized rail-trail that follows the scenic 
                 Allegheny River through Armstrong County, Pennsylvania. The trail connects multiple 
                 river towns and offers stunning views of the valley.
               </p>
@@ -217,7 +218,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
               <Map size={64} className="mx-auto mb-4 text-[var(--river-blue)]" />
               <h2 className="mb-4">Trail Map & Information</h2>
               <p className="text-[var(--forest-green)]/70 max-w-2xl mx-auto">
-                Plan your journey along the Armstrong Trail. Download trail maps, view access points, 
+                Plan your journey along the Armstrong Trails. Download trail maps, view access points, 
                 and discover points of interest along the route.
               </p>
             </div>
@@ -277,7 +278,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
           <div className="text-center mb-12">
             <h2 className="mb-4">Supporting Local Communities</h2>
             <p className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">
-              The Armstrong Trail brings significant economic benefits to the region, supporting 
+              The Armstrong Trails brings significant economic benefits to the region, supporting 
               local businesses and tourism throughout Armstrong County.
             </p>
           </div>
@@ -310,7 +311,7 @@ export function TrailPage({ onNavigate }: TrailPageProps) {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-white mb-6">Stay Here, Explore Armstrong</h2>
           <p className="text-xl mb-8 text-white/90">
-            Make White Rock Station your base camp for exploring the Armstrong Trail. Book your 
+            Make White Rock Station your base camp for exploring the Armstrong Trails. Book your 
             cabin or campsite today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

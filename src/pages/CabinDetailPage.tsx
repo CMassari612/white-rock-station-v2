@@ -22,7 +22,7 @@ const CONFIG: Record<string, {
 };
 
 const DEFAULT_DESCRIPTION =
-  'A cozy riverside cabin at White Rock Station, steps from the Allegheny River and the Armstrong Trail. ' +
+  'A cozy riverside cabin at White Rock Station, steps from the Allegheny River and the Armstrong Trails. ' +
   'Wake up to water views, spend the day on the river or the trail, and unwind around your own fire ring at night.';
 
 const AMENITIES = [
