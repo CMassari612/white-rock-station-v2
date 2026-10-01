@@ -66,7 +66,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     <Ed as="h5" id="contact.info.address.label" className="mb-1">Address</Ed>
                     <p className="text-[var(--forest-green)]/70">
                       <Ed as="span" id="contact.info.address.line1">149 Upper Allegheny Drive</Ed><br />
-                      <Ed as="span" id="contact.info.address.line2">Vandergrift, PA 15690</Ed>
+                      <Ed as="span" id="contact.info.address.line2">Vandergrift, PA 15690</Ed><br />
+                      <Ed as="span" id="contact.info.address.mailing">Mailing: PO Box 393, Leechburg, PA 15656</Ed>
                     </p>
                   </div>
                 </div>

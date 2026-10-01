@@ -67,7 +67,7 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="flex flex-col space-y-3">
               <div className="flex items-start space-x-2 text-sm">
                 <MapPin size={16} className="mt-1 flex-shrink-0" />
-                <Ed as="span" id="footer.contact.address" className="text-white/80">149 Upper Allegheny Drive, Vandergrift, PA 15690</Ed>
+                <span className="text-white/80"><Ed as="span" id="footer.contact.address">149 Upper Allegheny Drive, Vandergrift, PA 15690</Ed><br /><Ed as="span" id="footer.contact.mailing">Mailing: PO Box 393, Leechburg, PA 15656</Ed></span>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Phone size={16} className="flex-shrink-0" />
