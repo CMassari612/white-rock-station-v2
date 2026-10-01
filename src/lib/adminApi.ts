@@ -27,7 +27,7 @@ export interface Cleaner { id: string; name: string; phone: string; password: st
 // Read-only cleaner view: site + address + checkout date only.
 export interface CleaningRow { id: string; site: string; address: string; checkout: string; }
 
-export interface BlockedRange { id: string; start: string; end: string; reason?: string; source?: 'manual' | 'winter'; createdAt?: string; }
+export interface BlockedRange { id: string; start: string; end: string; reason?: string; source?: 'manual' | 'winter' | 'airbnb'; createdAt?: string; }
 export interface AdminUnit {
   id: string; slug: string; name: string;
   unitType: 'cottage' | 'tent_site' | 'kayak';

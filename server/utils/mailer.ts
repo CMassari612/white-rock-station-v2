@@ -175,6 +175,23 @@ export async function mailCleaningNotice(b: Booking, cleaningDate: string): Prom
   );
 }
 
+// ——— Cleaner weekly look-ahead ———
+export async function mailCleanerWeekly(to: string, items: { date: string; unitName: string; guestName?: string }[]): Promise<void> {
+  const fmt = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const rowsHtml = items.length
+    ? '<ul>' + items.map(i => `<li><b>${fmt(i.date)}</b> — ${i.unitName}${i.guestName ? ` (${i.guestName})` : ''}</li>`).join('') + '</ul>'
+    : '<p>No checkouts scheduled in the next 7 days.</p>';
+  const rowsText = items.length
+    ? items.map(i => `${fmt(i.date)} — ${i.unitName}${i.guestName ? ` (${i.guestName})` : ''}`).join('\n')
+    : 'No checkouts scheduled in the next 7 days.';
+  await send(
+    to,
+    "This week's checkouts — White Rock Station",
+    `<h2>This week's checkouts</h2><p>Cabins to turn over after checkout in the next 7 days:</p>${rowsHtml}<p>Check-out is by 10:00 AM. Questions? ${PHONE}.</p>`,
+    `This week's checkouts (next 7 days):\n${rowsText}\nCheck-out is by 10:00 AM. Questions? ${PHONE}.`
+  );
+}
+
 // ——— Johnetta Supply store (pickup-only) emails ———
 
 function orderItemsHtml(o: StoreOrder): string {

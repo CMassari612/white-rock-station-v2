@@ -12,6 +12,7 @@ import {
   adminGetStoreOrders, adminSetStoreOrderPickedUp,
   AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct, AdminStoreOrder,
 } from '../lib/adminApi';
+import { CabinCalendar } from '../components/admin/CabinCalendar';
 
 // Downscale + compress an image in the browser before upload (keeps pages fast
 // and storage small — phone photos are often several MB).
@@ -46,7 +47,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending_approval: '#b7791f', confirmed: '#2f7a4f', pending: '#7a7a7a', cancelled: '#b23b3b', expired: '#999', refunded: '#b23b3b',
 };
 
-type Tab = 'bookings' | 'sites' | 'store' | 'orders' | 'cleaning';
+type Tab = 'bookings' | 'calendar' | 'sites' | 'store' | 'orders' | 'cleaning';
 
 export function AdminDashboard({ onNavigate }: Props) {
   const role = getRole() || 'admin';
@@ -144,6 +145,7 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div style={{ fontWeight: 800, fontSize: 20 }}>White Rock Station — {isAdmin ? 'Admin' : 'Cleaner'}</div>
             <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
               {isAdmin && tabBtn('bookings', 'Bookings')}
+              {isAdmin && tabBtn('calendar', 'Calendar')}
               {isAdmin && tabBtn('sites', 'Sites')}
               {isAdmin && tabBtn('store', 'Store')}
               {isAdmin && tabBtn('orders', 'Orders')}
@@ -214,6 +216,16 @@ export function AdminDashboard({ onNavigate }: Props) {
                 </tbody>
               </table>
             </div>
+          </>
+        )}
+
+        {!loading && isAdmin && tab === 'calendar' && (
+          <>
+            <div style={{ marginBottom: 14 }}>
+              <h2 className="wrs-h3" style={{ marginBottom: 2 }}>Calendar</h2>
+              <p className="wrs-muted" style={{ margin: 0 }}>Reservations per cabin — bars run through the nights and into the checkout morning, so you can line up cleaners.</p>
+            </div>
+            <CabinCalendar units={units} bookings={bookings} />
           </>
         )}
 
