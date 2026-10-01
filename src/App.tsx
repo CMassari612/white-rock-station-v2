@@ -103,8 +103,19 @@ export default function App() {
   return (
     <SiteTextProvider showEditor={!isAdminArea}>
       <div className="min-h-screen flex flex-col overflow-x-hidden">
+        {/* Dev/preview banner — remove this block (and the nav's top offset) when this becomes the live site. Height must match DEV_BANNER_H in Navigation. */}
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, height: 30, zIndex: 1000,
+            background: '#f5c518', color: '#1a1a1a', textAlign: 'center',
+            fontSize: 13, fontWeight: 700, lineHeight: '30px', letterSpacing: '0.02em',
+            padding: '0 12px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+          }}
+        >
+          ⚠ Development preview — not the live White Rock Station site
+        </div>
         {!isAdminArea && <Navigation currentPage={currentPage} onNavigate={handleNavigate} />}
-        <main className="flex-grow overflow-x-hidden">{renderPage()}</main>
+        <main className="flex-grow overflow-x-hidden" style={{ paddingTop: isAdminArea ? 30 : 0 }}>{renderPage()}</main>
         {!isAdminArea && <Footer onNavigate={handleNavigate} />}
       </div>
     </SiteTextProvider>

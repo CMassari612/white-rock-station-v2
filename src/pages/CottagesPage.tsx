@@ -6,11 +6,21 @@ interface Props {
   onNavigate: (page: string, slug?: string) => void;
 }
 
-const GROUP_ORDER = ['Allegheny Shore', 'Riverview Village'];
-const GROUP_BLURB: Record<string, string> = {
-  'Allegheny Shore': 'Our riverfront cottage, right on the water.',
-  'Riverview Village': 'Trailfront cottages and studios with river views, steps from the Armstrong Trails.',
-};
+// Group by size so the two one-bedroom cottages (Allegheny Shore + Boatwatch)
+// show together, with the studios in their own section. Grouping by bedroom
+// count keeps this correct without any database changes.
+const GROUP_DEFS: { name: string; blurb: string; match: (u: Unit) => boolean }[] = [
+  {
+    name: 'One-Bedroom Cottages',
+    blurb: 'Our larger one-bedroom cottages, offering more space and beautiful views just steps from the Allegheny River.',
+    match: (u) => (u.bedrooms || 0) >= 1,
+  },
+  {
+    name: 'Riverview Village',
+    blurb: 'Trailfront studios with river views, steps from the Armstrong Trails.',
+    match: (u) => (u.bedrooms || 0) === 0,
+  },
+];
 
 export function CottagesPage({ onNavigate }: Props) {
   const [units, setUnits] = useState<Unit[]>([]);
@@ -24,7 +34,7 @@ export function CottagesPage({ onNavigate }: Props) {
       .finally(() => setLoading(false));
   }, []);
 
-  const groups = GROUP_ORDER.map(g => ({ name: g, items: units.filter(u => u.group === g) })).filter(g => g.items.length);
+  const groups = GROUP_DEFS.map(g => ({ name: g.name, blurb: g.blurb, items: units.filter(g.match) })).filter(g => g.items.length);
 
   return (
     <div className="wrs">
@@ -32,7 +42,7 @@ export function CottagesPage({ onNavigate }: Props) {
         <div className="wrs-container" style={{ paddingTop: 40 }}>
           <Ed as="p" id="cottages.hero.eyebrow" className="wrs-eyebrow" style={{ color: 'var(--wrs-tan)' }}>Stay With Us</Ed>
           <Ed as="h1" id="cottages.hero.title" className="wrs-h1" style={{ color: '#fff' }}>Riverside Cottages</Ed>
-          <Ed as="p" id="cottages.hero.sub" className="wrs-hero__sub" style={{ marginBottom: 0 }}>Comfortable, fully-equipped cottages along the Allegheny River and the Armstrong Trails — book directly with us.</Ed>
+          <Ed as="p" id="cottages.hero.sub" className="wrs-hero__sub" style={{ marginBottom: 0 }}>Refined riverfront cabins designed for a relaxed stay.</Ed>
         </div>
       </section>
 
@@ -46,7 +56,7 @@ export function CottagesPage({ onNavigate }: Props) {
               <div className="wrs-grouphead">
                 <div>
                   <h2 className="wrs-h2" style={{ marginBottom: 4 }}>{group.name}</h2>
-                  <p className="wrs-muted" style={{ margin: 0 }}>{GROUP_BLURB[group.name]}</p>
+                  <p className="wrs-muted" style={{ margin: 0 }}>{group.blurb}</p>
                 </div>
               </div>
 

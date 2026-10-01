@@ -5,7 +5,9 @@ import { getSiteText, applySiteTextEdits } from '../storage/siteTextStore';
 const router = express.Router();
 
 // GET /api/site-text — public: the current text overrides for the whole site.
+// no-store so a browser never serves a stale copy after an edit is saved.
 router.get('/', async (_req: Request, res: Response) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.json({ text: await getSiteText() });
 });
 

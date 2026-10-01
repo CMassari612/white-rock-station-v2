@@ -65,7 +65,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   <div>
                     <Ed as="h5" id="contact.info.address.label" className="mb-1">Address</Ed>
                     <p className="text-[var(--forest-green)]/70">
-                      <Ed as="span" id="contact.info.address.line1">372 T404</Ed><br />
+                      <Ed as="span" id="contact.info.address.line1">149 Upper Allegheny Drive</Ed><br />
                       <Ed as="span" id="contact.info.address.line2">Vandergrift, PA 15690</Ed>
                     </p>
                   </div>
@@ -102,8 +102,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   <div>
                     <Ed as="h5" id="contact.info.hours.label" className="mb-1">Office Hours</Ed>
                     <p className="text-[var(--forest-green)]/70">
-                      <Ed as="span" id="contact.info.hours.line1">Monday - Friday: 9am - 5pm</Ed><br />
-                      <Ed as="span" id="contact.info.hours.line2">Saturday: 10am - 5pm</Ed>
+                      <Ed as="span" id="contact.info.hours.line1">We usually reply within a day</Ed><br />
+                      <Ed as="span" id="contact.info.hours.line2">Messages welcome anytime</Ed>
                     </p>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   </div>
                   <div>
                     <Ed as="h5" id="contact.info.season.label" className="mb-1">Season</Ed>
-                    <Ed as="p" id="contact.info.season.value" className="text-[var(--forest-green)]/70">Marina: April - October</Ed>
+                    <Ed as="p" id="contact.info.season.value" className="text-[var(--forest-green)]/70">Cabins, campsites &amp; marina: Open seasonally, April through October</Ed>
                   </div>
                 </div>
               </div>
@@ -188,6 +188,32 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
               </form>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Getting Here */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <Ed as="h2" id="contact.here.title" className="text-center mb-8">Getting Here</Ed>
+          <div className="space-y-4 text-[var(--forest-green)]/80 leading-relaxed">
+            <Ed as="p" id="contact.here.p1">White Rock Station is tucked along the Allegheny River in Gilpin Township, Armstrong County, between Leechburg and Ford City. While our mailing address is Vandergrift, we are not located in downtown Vandergrift.</Ed>
+            <Ed as="p" id="contact.here.p2">We sit directly along Armstrong Trails and just off Route 66, surrounded by the river, wooded hills, and miles of trail.</Ed>
+            <Ed as="p" id="contact.here.p3">We're about an hour from Pittsburgh, with easy connections from Routes 28, 422, and 356. From the Pittsburgh area, the drive gradually trades highways and suburbs for small towns, river views, and the rolling hills of western Pennsylvania.</Ed>
+          </div>
+
+          <Ed as="h3" id="contact.here.drivetitle" className="mt-8 mb-4">Approximate drive times</Ed>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-16 max-w-2xl mx-auto text-[var(--forest-green)]/80">
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d1a">Leechburg</Ed><Ed as="span" id="contact.here.d1b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">10 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d2a">Ford City</Ed><Ed as="span" id="contact.here.d2b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">15 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d3a">Kittanning</Ed><Ed as="span" id="contact.here.d3b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">25 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d4a">Monroeville</Ed><Ed as="span" id="contact.here.d4b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">45 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d5a">Greensburg</Ed><Ed as="span" id="contact.here.d5b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">45 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d6a">Indiana, PA</Ed><Ed as="span" id="contact.here.d6b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">50 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d7a">Butler</Ed><Ed as="span" id="contact.here.d7b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">55 minutes</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d8a">Pittsburgh</Ed><Ed as="span" id="contact.here.d8b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">1 hour</Ed></div>
+            <div className="flex items-baseline justify-between border-b border-[var(--sand-tan)]/60 py-2.5"><Ed as="span" id="contact.here.d9a">Cranberry Township</Ed><Ed as="span" id="contact.here.d9b" className="text-[var(--forest-green)]/60 whitespace-nowrap pl-6">1 hour</Ed></div>
+          </div>
+          <Ed as="p" id="contact.here.close" className="mt-12 text-center italic text-[var(--forest-green)]/70">Close enough for a weekend away without spending half of it getting here.</Ed>
         </div>
       </section>
 

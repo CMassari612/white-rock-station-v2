@@ -67,7 +67,7 @@ export function Footer({ onNavigate }: FooterProps) {
             <div className="flex flex-col space-y-3">
               <div className="flex items-start space-x-2 text-sm">
                 <MapPin size={16} className="mt-1 flex-shrink-0" />
-                <Ed as="span" id="footer.contact.address" className="text-white/80">372 T404, Vandergrift, PA 15690</Ed>
+                <Ed as="span" id="footer.contact.address" className="text-white/80">149 Upper Allegheny Drive, Vandergrift, PA 15690</Ed>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Phone size={16} className="flex-shrink-0" />
@@ -91,8 +91,9 @@ export function Footer({ onNavigate }: FooterProps) {
                 <Instagram size={20} />
               </a>
             </div>
-            <div className="text-sm text-white/80">
-              <Ed as="p" id="footer.connect.hours">Marina: Weather dependent</Ed>
+            <div className="text-sm text-white/80 space-y-1">
+              <Ed as="p" id="footer.connect.hours.cabins">Cabins &amp; Campsites: Open seasonally, April through October</Ed>
+              <Ed as="p" id="footer.connect.hours.marina">Marina: Open seasonally, April through October</Ed>
             </div>
           </div>
         </div>

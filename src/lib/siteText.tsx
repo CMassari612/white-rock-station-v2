@@ -1,9 +1,23 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode, createElement } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, ReactNode, createElement } from 'react';
 import { getAdminPassword, setAdminPassword } from './adminSession';
 
-const API_URL = import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:5050') : '';
+// Always same-origin: in dev the Vite server proxies /api -> :5050 (see
+// vite.config server.proxy), in prod it's the same host. Using a relative path
+// avoids a cross-origin call to :5050, which can fail CORS/preflight on saves.
+const API_URL = '';
 
 type TextMap = Record<string, string>;
+
+// Local cache of the last-known overrides, so the very first paint after a
+// refresh uses the saved text instead of the built-in defaults (no "flash of
+// old text" while the network fetch is in flight). Updated on every load/save.
+const CACHE_KEY = 'siteTextCache';
+function readTextCache(): TextMap {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; } catch { return {}; }
+}
+function writeTextCache(m: TextMap) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(m || {})); } catch { /* ignore */ }
+}
 
 interface Ctx {
   map: TextMap;                       // saved overrides (id -> text)
@@ -23,7 +37,9 @@ export function useSiteText() { return useContext(SiteTextCtx); }
  * the floating "Edit text" toolbar (only for a logged-in admin).
  */
 export function SiteTextProvider({ children, showEditor = true }: { children: ReactNode; showEditor?: boolean }) {
-  const [map, setMap] = useState<TextMap>({});
+  // Seed synchronously from the local cache so the first render already shows
+  // saved overrides; the network fetch below then confirms/updates them.
+  const [map, setMap] = useState<TextMap>(() => readTextCache());
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -33,7 +49,10 @@ export function SiteTextProvider({ children, showEditor = true }: { children: Re
   const [pwError, setPwError] = useState('');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/site-text`).then(r => r.json()).then(d => setMap(d.text || {})).catch(() => {});
+    // no-store + cache-buster so a refresh always pulls the latest saved text,
+    // never a browser-cached copy from before the last edit.
+    fetch(`${API_URL}/api/site-text?t=${Date.now()}`, { cache: 'no-store' })
+      .then(r => r.json()).then(d => { const t = d.text || {}; setMap(t); writeTextCache(t); }).catch(() => {});
   }, []);
 
   const setDraft = (id: string, value: string) => { drafts.current[id] = value; };
@@ -90,7 +109,9 @@ export function SiteTextProvider({ children, showEditor = true }: { children: Re
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Save failed');
-      setMap(data.text || {});
+      const t = data.text || {};
+      setMap(t);
+      writeTextCache(t);
       setEditing(false);
       setToast('Saved — changes are live.');
       setTimeout(() => setToast(null), 3000);
@@ -170,11 +191,26 @@ export function Ed({ id, children, as = 'span', className, style }: {
   const def = typeof children === 'string' ? children : '';
   registerDefault(id, def);
   const value = map[id] ?? def;
+  const ref = useRef<HTMLElement | null>(null);
+
+  // When entering edit mode, seed the element's text ONCE via the DOM and then
+  // leave it uncontrolled. We intentionally do NOT pass `value` as a React child
+  // while editing: if we did, any re-render would reconcile the DOM back to the
+  // original text and silently wipe what the user typed before Save reads it.
+  useLayoutEffect(() => {
+    if (editing && ref.current) {
+      ref.current.textContent = value;
+      setDraft(id, value); // baseline so an untouched field is a no-op on save
+    }
+    // Re-seed only when edit mode toggles, never on every keystroke/re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing]);
 
   if (!editing) {
     return createElement(as, { className, style }, value);
   }
   return createElement(as, {
+    ref,
     className,
     style: { ...style, outline: '2px dashed rgba(47,111,176,.7)', outlineOffset: 2, cursor: 'text', borderRadius: 3 },
     contentEditable: 'plaintext-only' as any,
@@ -186,5 +222,7 @@ export function Ed({ id, children, as = 'span', className, style }: {
     onClick: (e: any) => e.stopPropagation(),
     onMouseDown: (e: any) => e.stopPropagation(),
     onKeyDown: (e: any) => e.stopPropagation(),
-  }, value);
+    // No children: the text lives in the DOM (seeded above) and stays put
+    // across re-renders, so typed edits are never clobbered.
+  });
 }

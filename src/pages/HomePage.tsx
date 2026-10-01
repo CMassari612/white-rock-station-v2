@@ -21,11 +21,11 @@ export function HomePage({ onNavigate }: Props) {
         <div className="wrs-hero__bg" style={{ backgroundImage: 'url(/images/scenery/Scenery%2003.jpg)' }} />
         <div className="wrs-hero__scrim" />
         <div className="wrs-container wrs-hero__inner">
-          <Ed as="p" id="home.hero.eyebrow" className="wrs-eyebrow" style={{ color: '#f8f6f2' }}>Gilpin, Pennsylvania</Ed>
+          <Ed as="p" id="home.hero.eyebrow" className="wrs-eyebrow" style={{ color: '#f8f6f2' }}>Gilpin Township, Pennsylvania</Ed>
           <Ed as="h1" id="home.hero.title" className="wrs-h1" style={{ fontSize: 'clamp(46px, 8vw, 88px)', letterSpacing: '-0.02em', marginBottom: 8, color: '#f8f6f2' }}>White Rock Station</Ed>
           <Ed as="p" id="home.hero.tagline" style={{ fontSize: 'clamp(18px,2.4vw,24px)', color: '#f8f6f2', fontWeight: 700, margin: '0 0 16px' }}>Riverfront Cottages &amp; Camping</Ed>
           <Ed as="p" id="home.hero.sub" className="wrs-hero__sub">
-            Cozy cottages, primitive camping, and direct access to the Armstrong Trails — book directly with White Rock Station.
+            Stay along the Allegheny River with cabins, camping, and direct access to Armstrong Trails.
           </Ed>
           <div className="wrs-hero__cta">
             <button className="wrs-btn wrs-btn-primary" onClick={() => onNavigate('cottages')}><Ed as="span" id="home.hero.cta1">Explore Cottages</Ed></button>
@@ -38,10 +38,19 @@ export function HomePage({ onNavigate }: Props) {
       <section className="wrs-section wrs-section--tight">
         <div className="wrs-container">
           <div className="wrs-features">
-            <div className="wrs-feature"><div className="wrs-feature__icon"><Home size={24} strokeWidth={1.75} /></div><Ed as="h3" id="home.vp1.title" className="wrs-h3">Riverfront Cottages</Ed><Ed as="p" id="home.vp1.text" className="wrs-muted">Fully-equipped cottages with full kitchens and river views.</Ed></div>
+            <div className="wrs-feature"><div className="wrs-feature__icon"><Home size={24} strokeWidth={1.75} /></div><Ed as="h3" id="home.vp1.title" className="wrs-h3">Riverfront Cottages</Ed><Ed as="p" id="home.vp1.text" className="wrs-muted">Thoughtfully designed riverfront cabins with beautiful views and the essentials for a comfortable stay.</Ed></div>
             <div className="wrs-feature"><div className="wrs-feature__icon"><Bike size={24} strokeWidth={1.75} /></div><Ed as="h3" id="home.vp2.title" className="wrs-h3">Armstrong Trails</Ed><Ed as="p" id="home.vp2.text" className="wrs-muted">Step right onto one of PA's favorite rail-trails.</Ed></div>
             <div className="wrs-feature"><div className="wrs-feature__icon"><Waves size={24} strokeWidth={1.75} /></div><Ed as="h3" id="home.vp3.title" className="wrs-h3">River Access</Ed><Ed as="p" id="home.vp3.text" className="wrs-muted">Direct access to the Allegheny right from your cottage.</Ed></div>
           </div>
+        </div>
+      </section>
+
+      {/* Location blurb */}
+      <section className="wrs-section wrs-section--tight" style={{ background: 'var(--wrs-tan, #efe9dd)' }}>
+        <div className="wrs-container" style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Ed as="p" id="home.location.eyebrow" className="wrs-eyebrow">Where We Are</Ed>
+          <Ed as="p" id="home.location.text" className="wrs-lead" style={{ margin: '8px auto 20px', maxWidth: 560 }}>White Rock Station sits along the Allegheny River in Gilpin Township — directly on Armstrong Trails, just off Route 66, and about an hour from Pittsburgh.</Ed>
+          <button className="wrs-btn wrs-btn-primary" onClick={() => onNavigate('contact')}><Ed as="span" id="home.location.cta">See drive times &amp; directions</Ed></button>
         </div>
       </section>
 

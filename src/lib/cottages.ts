@@ -5,9 +5,8 @@
 // In production the API is served same-origin (/api/*) on Vercel, so we force
 // an empty base regardless of VITE_API_URL — a stale/incorrect value in the
 // hosting env can't misdirect the frontend. VITE_API_URL only applies in dev.
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:5050')
-  : '';
+// Same-origin always: dev proxies /api -> :5050 (vite.config), prod is same host.
+const API_URL = '';
 
 export type UnitType = 'cottage' | 'tent_site' | 'kayak';
 

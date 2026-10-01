@@ -1,8 +1,9 @@
 import { getAdminPassword } from './adminSession';
 
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:5050')
-  : '';
+// Same-origin always: in dev the Vite server proxies /api -> :5050 (see
+// vite.config server.proxy); in prod it's the same host. A relative base avoids
+// cross-origin calls that can fail CORS/preflight on authenticated POSTs.
+const API_URL = '';
 
 export interface AdminBooking {
   id: string;

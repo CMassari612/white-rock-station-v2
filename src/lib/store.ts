@@ -1,9 +1,8 @@
 // Client helpers for the Johnetta Supply / White Rock Station store.
 // Mirrors the cottages.ts API base convention: same-origin in production,
 // VITE_API_URL (or localhost) in dev.
-const API_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:5050')
-  : '';
+// Same-origin always: dev proxies /api -> :5050 (vite.config), prod is same host.
+const API_URL = '';
 
 export interface StoreProduct {
   id: string;

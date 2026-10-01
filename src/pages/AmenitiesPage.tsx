@@ -203,7 +203,7 @@ export function AmenitiesPage({ onNavigate }: AmenitiesPageProps) {
                 </li>
                 <li className="flex items-start">
                   <span className="text-[var(--river-blue)] mr-2">•</span>
-                  <Ed as="span" id="amenities.security.card2.3">Well-lit common areas</Ed>
+                  <Ed as="span" id="amenities.security.card2.3">Quiet, private riverside setting</Ed>
                 </li>
               </ul>
             </div>
