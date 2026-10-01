@@ -75,6 +75,27 @@ export async function adminAddStoreProduct(body: Partial<AdminStoreProduct>): Pr
 export async function adminDeleteStoreProduct(id: string): Promise<void> {
   await call(`/api/admin/store/${encodeURIComponent(id)}`, 'DELETE');
 }
+
+// ---- Store orders (pickup) ----
+export interface AdminStoreOrder {
+  id: string;
+  createdAt: string;
+  items: { name: string; qty: number; priceCents: number }[];
+  subtotalCents: number;
+  taxCents: number;
+  totalCents: number;
+  customerName?: string;
+  customerEmail?: string;
+  stripeSessionId: string;
+  pickedUp: boolean;
+  pickedUpAt?: string;
+}
+export async function adminGetStoreOrders(): Promise<AdminStoreOrder[]> {
+  return (await call('/api/admin/store-orders')).orders;
+}
+export async function adminSetStoreOrderPickedUp(id: string, pickedUp: boolean): Promise<AdminStoreOrder> {
+  return (await call(`/api/admin/store-orders/${encodeURIComponent(id)}/picked-up`, 'POST', { pickedUp })).order;
+}
 export async function adminUploadStorePhoto(id: string, blob: Blob): Promise<AdminStoreProduct> {
   const res = await fetch(`${API_URL}/api/admin/store/${encodeURIComponent(id)}/photo`, {
     method: 'POST',

@@ -31,14 +31,14 @@ router.post('/checkout', async (req: Request, res: Response) => {
     const stripe = getStripe();
     if (!stripe) return res.status(501).json({ error: 'Stripe is not configured.' });
 
-    const { items, fulfillment } = req.body || {};
+    const { items } = req.body || {};
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Your cart is empty.' });
     }
-    const ship = fulfillment === 'ship';
     const catalog = await getAllStoreProducts();
 
     const line_items: any[] = [];
+    const orderItems: { n: string; q: number; p: number }[] = [];
     let taxableCents = 0;
     for (const it of items) {
       const product = catalog.find((p) => p.id === it?.id && p.active !== false);
@@ -52,6 +52,7 @@ router.post('/checkout', async (req: Request, res: Response) => {
         },
         quantity: qty,
       });
+      orderItems.push({ n: product.name, q: qty, p: product.priceCents });
       if (product.taxable) taxableCents += product.priceCents * qty;
     }
     if (line_items.length === 0) {
@@ -69,31 +70,19 @@ router.post('/checkout', async (req: Request, res: Response) => {
 
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+    // Pickup only. No shipping, no phone/text collection. The item summary is
+    // stashed in metadata so the webhook can record the order without a second
+    // Stripe call (kept well under Stripe's 500-char metadata limit).
     const sessionConfig: any = {
       mode: 'payment',
       line_items,
       success_url: `${baseUrl}/store?checkout=success`,
       cancel_url: `${baseUrl}/store?checkout=cancel`,
-      metadata: { kind: 'merch', fulfillment: ship ? 'ship' : 'pickup' },
-      phone_number_collection: { enabled: true },
+      metadata: { kind: 'merch', fulfillment: 'pickup', items: JSON.stringify(orderItems).slice(0, 480) },
+      custom_text: {
+        submit: { message: 'Pickup at Johnetta Supply — your items will be ready at the store.' },
+      },
     };
-
-    if (ship) {
-      sessionConfig.shipping_address_collection = { allowed_countries: ['US'] };
-      sessionConfig.shipping_options = [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: { amount: SHIP_FEE_CENTS, currency: 'usd' },
-            display_name: 'Standard shipping',
-          },
-        },
-      ];
-    } else {
-      sessionConfig.custom_text = {
-        submit: { message: "Pickup at Johnetta Supply — we'll text you when your order is ready." },
-      };
-    }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
     res.json({ url: session.url });

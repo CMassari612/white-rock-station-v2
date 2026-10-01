@@ -3,6 +3,7 @@
 
 import nodemailer from 'nodemailer';
 import { Booking } from '../types/booking-request';
+import { StoreOrder } from '../storage/storeOrdersStore';
 
 function getFrom(): string {
   return process.env.EMAIL_FROM || process.env.SMTP_USER || '';
@@ -171,5 +172,38 @@ export async function mailCleaningNotice(b: Booking, cleaningDate: string): Prom
     `Cleaning needed: ${b.unitName} — ${cleaningDate}`,
     `<h2>Cleaning needed</h2><p><b>${b.unitName}</b></p><p>Guest: ${b.name} · ${b.phone || '—'}</p><p>Stay: ${b.startDate} → ${b.endDate}<br>Cleaning date: ${cleaningDate} (day after checkout)</p>`,
     `Cleaning needed: ${b.unitName}. Guest ${b.name} ${b.phone || ''}. Stay ${b.startDate}→${b.endDate}. Cleaning date ${cleaningDate}.`
+  );
+}
+
+// ——— Johnetta Supply store (pickup-only) emails ———
+
+function orderItemsHtml(o: StoreOrder): string {
+  const rows = o.items.map(i => `<tr><td style="padding:4px 12px 4px 0">${i.qty} × ${i.name}</td><td style="padding:4px 0;text-align:right">${money(i.priceCents * i.qty)}</td></tr>`).join('');
+  return `<table style="border-collapse:collapse;margin:8px 0">${rows}</table>`;
+}
+function orderItemsText(o: StoreOrder): string {
+  return o.items.map(i => `${i.qty} x ${i.name} — ${money(i.priceCents * i.qty)}`).join('; ');
+}
+
+// Buyer: friendly purchase confirmation. Pickup only — items held at the store.
+export async function mailStoreBuyerReceipt(o: StoreOrder): Promise<void> {
+  if (!o.customerEmail) return;
+  const name = o.customerName ? `, ${o.customerName}` : '';
+  await send(
+    o.customerEmail,
+    'Thank you for your purchase — Johnetta Supply',
+    `<h2>Thank you${name}!</h2><p>We've received your order from Johnetta Supply at White Rock Station.</p>${orderItemsHtml(o)}<p><b>Total: ${money(o.totalCents)}</b></p><p>Your items will be <b>available for pickup at the store</b>. Stop by during your stay or our seasonal store hours and we'll have them ready for you.</p><p>Questions? Email info@whiterockstation.com or call ${PHONE}.</p><p>White Rock Station · Johnetta Supply</p>`,
+    `Thank you${name}! We received your Johnetta Supply order: ${orderItemsText(o)}. Total ${money(o.totalCents)}. Your items will be available for pickup at the store. Questions: info@whiterockstation.com or ${PHONE}.`
+  );
+}
+
+// Owner: new store order alert so you know to set it aside for pickup.
+export async function mailStoreOwnerAlert(o: StoreOrder): Promise<void> {
+  const to = (process.env.STORE_ORDER_EMAIL || process.env.ADMIN_NOTIFY_EMAIL || process.env.SMTP_USER || '').trim();
+  await send(
+    to,
+    `New store order — ${money(o.totalCents)} (pickup)`,
+    `<h2>New Johnetta Supply order</h2>${orderItemsHtml(o)}<p><b>Total: ${money(o.totalCents)}</b> (incl. tax ${money(o.taxCents)})</p><p>Customer: ${o.customerName || '—'} · ${o.customerEmail || '—'}</p><p>Mark it picked up in the admin once the customer collects it.</p>`,
+    `New store order (pickup). ${orderItemsText(o)}. Total ${money(o.totalCents)}. Customer: ${o.customerName || '—'} ${o.customerEmail || ''}.`
   );
 }

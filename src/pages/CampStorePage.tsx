@@ -116,7 +116,7 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
             <CheckCircle size={22} className="text-[var(--river-blue)] mt-0.5" />
             <div>
               {banner === 'success' ? (
-                <Ed as="p" id="store.banner.success" className="text-[var(--forest-green)]">Thanks for your order! You'll get an email confirmation from Stripe. We'll text you when a pickup order is ready.</Ed>
+                <Ed as="p" id="store.banner.success" className="text-[var(--forest-green)]">Thanks for your order! You'll get an email confirmation, and your items will be ready for pickup at the store.</Ed>
               ) : (
                 <Ed as="p" id="store.banner.cancel" className="text-[var(--forest-green)]">Checkout canceled — your cart is still here whenever you're ready.</Ed>
               )}
@@ -173,7 +173,7 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
           <div className="text-center mb-12">
             <Ed as="p" id="store.shop.eyebrow" className="uppercase tracking-widest text-[var(--river-blue)] mb-3">Shop the Merch</Ed>
             <Ed as="h2" id="store.shop.title" className="mb-4">White Rock Station Goods</Ed>
-            <Ed as="p" id="store.shop.sub" className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">Take the river home with you. Choose store pickup or shipping at checkout.</Ed>
+            <Ed as="p" id="store.shop.sub" className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">Take the river home with you. Available for pickup at the camp store.</Ed>
           </div>
 
           <div>
@@ -253,31 +253,12 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
                     ))}
                   </div>
 
-                  {/* Fulfillment */}
-                  <div className="border-t border-[var(--sand-tan)] pt-4 mb-4">
-                    <Ed as="p" id="store.cart.getby" className="text-sm font-medium mb-2">Get it by</Ed>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setFulfillment('pickup')}
-                        className={`h-10 rounded-lg border text-sm ${fulfillment === 'pickup' ? 'border-[var(--river-blue)] bg-[var(--river-blue)]/10 text-[var(--river-blue)]' : 'border-[var(--sand-tan)]'}`}
-                      ><Ed as="span" id="store.cart.pickup">Store pickup</Ed></button>
-                      <button
-                        onClick={() => setFulfillment('ship')}
-                        className={`h-10 rounded-lg border text-sm ${fulfillment === 'ship' ? 'border-[var(--river-blue)] bg-[var(--river-blue)]/10 text-[var(--river-blue)]' : 'border-[var(--sand-tan)]'}`}
-                      ><Ed as="span" id="store.cart.ship">Ship to me</Ed></button>
-                    </div>
-                  </div>
-
-                  {/* Totals */}
-                  <div className="text-sm space-y-1 mb-4">
+                  {/* Totals (pickup only) */}
+                  <div className="text-sm space-y-1 mb-4 border-t border-[var(--sand-tan)] pt-4">
                     <div className="flex justify-between"><Ed as="span" id="store.cart.subtotal">Subtotal</Ed><span>{dollars(subtotalCents)}</span></div>
                     {taxCents > 0 && (
                       <div className="flex justify-between"><Ed as="span" id="store.cart.tax">PA sales tax (6%)</Ed><span>{dollars(taxCents)}</span></div>
                     )}
-                    <div className="flex justify-between">
-                      <Ed as="span" id="store.cart.shipping">Shipping</Ed>
-                      <span>{fulfillment === 'ship' ? dollars(shippingCents) : 'Free (pickup)'}</span>
-                    </div>
                     <div className="flex justify-between font-semibold text-base border-t border-[var(--sand-tan)] pt-2 mt-2">
                       <Ed as="span" id="store.cart.total">Total</Ed><span>{dollars(totalCents)}</span>
                     </div>
@@ -293,7 +274,7 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
                     {checkingOut ? <Ed as="span" id="store.checkout.loading">Redirecting to secure checkout…</Ed> : <Ed as="span" id="store.checkout.btn">Checkout</Ed>}
                   </button>
                   <p className="text-xs text-[var(--forest-green)]/60 text-center mt-3">
-                    <Ed as="span" id="store.cart.secure">Secure payment by Stripe.</Ed> {fulfillment === 'ship' ? 'Shipping address collected at checkout.' : 'Pick up at Johnetta Supply.'}
+                    <Ed as="span" id="store.cart.secure">Secure payment by Stripe. Pick up at Johnetta Supply.</Ed>
                   </p>
                 </>
               )}
@@ -302,24 +283,15 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
         </div>
       </section>
 
-      {/* Pickup & shipping */}
+      {/* Pickup */}
       <section className="py-16 px-4 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <Ed as="h2" id="store.pickup.title" className="mb-4">Pickup or Shipping</Ed>
-            <Ed as="p" id="store.pickup.sub" className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto">Two easy ways to get your gear.</Ed>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-[var(--sand-tan)]/30 rounded-lg p-8 text-center">
-              <StoreIcon size={48} className="mx-auto mb-4 text-[var(--river-blue)]" />
-              <Ed as="h4" id="store.pickup.card1.title" className="mb-3">Store Pickup</Ed>
-              <Ed as="p" id="store.pickup.card1.desc" className="text-[var(--forest-green)]/70">Pay online and grab your order at Johnetta Supply when you're on the trails or checking in — no shipping cost.</Ed>
-            </div>
-            <div className="bg-[var(--sand-tan)]/30 rounded-lg p-8 text-center">
-              <Truck size={48} className="mx-auto mb-4 text-[var(--river-blue)]" />
-              <Ed as="h4" id="store.pickup.card2.title" className="mb-3">Shipped to You</Ed>
-              <Ed as="p" id="store.pickup.card2.desc" className="text-[var(--forest-green)]/70">Can't make it out? Choose shipping at checkout and we'll send your gear anywhere in the U.S.</Ed>
-            </div>
+        <div className="max-w-3xl mx-auto text-center">
+          <Ed as="h2" id="store.pickup.title" className="mb-4">Store Pickup</Ed>
+          <Ed as="p" id="store.pickup.sub" className="text-xl text-[var(--forest-green)]/70 max-w-3xl mx-auto mb-8">Pay online and grab your order at the camp store.</Ed>
+          <div className="bg-[var(--sand-tan)]/30 rounded-lg p-8 text-center max-w-md mx-auto">
+            <StoreIcon size={48} className="mx-auto mb-4 text-[var(--river-blue)]" />
+            <Ed as="h4" id="store.pickup.card1.title" className="mb-3">Pick up at Johnetta Supply</Ed>
+            <Ed as="p" id="store.pickup.card1.desc" className="text-[var(--forest-green)]/70">Grab your order at Johnetta Supply when you're on the trails or checking in — we'll have it ready for you at the store.</Ed>
           </div>
         </div>
       </section>
@@ -346,7 +318,7 @@ export function CampStorePage({ onNavigate }: CampStorePageProps) {
       <section className="py-16 px-4 bg-[var(--forest-green)] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <Ed as="h2" id="store.cta.title" className="text-white mb-6">Stop by on the Trails</Ed>
-          <Ed as="p" id="store.cta.sub" className="text-xl mb-8 text-white/90">Riding the Armstrong Trails or staying the weekend? Swing by Johnetta Supply — or order your gear online for pickup or shipping.</Ed>
+          <Ed as="p" id="store.cta.sub" className="text-xl mb-8 text-white/90">Riding the Armstrong Trails or staying the weekend? Swing by Johnetta Supply — or order your gear online for pickup at the store.</Ed>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <CTAButton variant="secondary" onClick={() => onNavigate('trail')} className="h-12 px-8"><Ed as="span" id="store.cta.explore">Explore the Trails</Ed></CTAButton>
             <a

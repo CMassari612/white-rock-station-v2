@@ -9,7 +9,8 @@ import {
   adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
   adminSyncAirbnb,
   adminGetStore, adminUpdateStoreProduct, adminAddStoreProduct, adminDeleteStoreProduct, adminUploadStorePhoto,
-  AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct,
+  adminGetStoreOrders, adminSetStoreOrderPickedUp,
+  AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct, AdminStoreOrder,
 } from '../lib/adminApi';
 
 // Downscale + compress an image in the browser before upload (keeps pages fast
@@ -45,7 +46,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending_approval: '#b7791f', confirmed: '#2f7a4f', pending: '#7a7a7a', cancelled: '#b23b3b', expired: '#999', refunded: '#b23b3b',
 };
 
-type Tab = 'bookings' | 'sites' | 'store' | 'cleaning';
+type Tab = 'bookings' | 'sites' | 'store' | 'orders' | 'cleaning';
 
 export function AdminDashboard({ onNavigate }: Props) {
   const role = getRole() || 'admin';
@@ -57,6 +58,7 @@ export function AdminDashboard({ onNavigate }: Props) {
   const [schedule, setSchedule] = useState<CleaningRow[]>([]);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [products, setProducts] = useState<AdminStoreProduct[]>([]);
+  const [orders, setOrders] = useState<AdminStoreOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const loadedRef = useRef(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -79,10 +81,10 @@ export function AdminDashboard({ onNavigate }: Props) {
     try {
       if (isAdmin) {
         // One round-trip: fetch everything in parallel instead of sequentially.
-        const [sched, b, c, u, sp] = await Promise.all([
-          getCleaningSchedule(), adminGetBookings(), getCleaners(), adminGetUnits(), adminGetStore(),
+        const [sched, b, c, u, sp, so] = await Promise.all([
+          getCleaningSchedule(), adminGetBookings(), getCleaners(), adminGetUnits(), adminGetStore(), adminGetStoreOrders(),
         ]);
-        setSchedule(sched); setBookings(b); setCleaners(c); setUnits(u); setProducts(sp);
+        setSchedule(sched); setBookings(b); setCleaners(c); setUnits(u); setProducts(sp); setOrders(so);
       } else {
         setSchedule(await getCleaningSchedule());
       }
@@ -144,6 +146,7 @@ export function AdminDashboard({ onNavigate }: Props) {
               {isAdmin && tabBtn('bookings', 'Bookings')}
               {isAdmin && tabBtn('sites', 'Sites')}
               {isAdmin && tabBtn('store', 'Store')}
+              {isAdmin && tabBtn('orders', 'Orders')}
               {tabBtn('cleaning', 'Cleaning Schedule')}
             </div>
           </div>
@@ -292,11 +295,72 @@ export function AdminDashboard({ onNavigate }: Props) {
         {!loading && isAdmin && tab === 'store' && (
           <StoreManager products={products} onChanged={load} onError={setError} />
         )}
+
+        {!loading && isAdmin && tab === 'orders' && (
+          <OrdersManager orders={orders} onChanged={load} onError={setError} />
+        )}
       </div>
 
       {showWinter && <WinterClosureModal units={units} onClose={() => setShowWinter(false)} onDone={async () => { setShowWinter(false); await load(); }} onError={setError} />}
       {showAddSite && <AddSiteModal onClose={() => setShowAddSite(false)} onDone={async () => { setShowAddSite(false); await load(); }} onError={setError} />}
     </div>
+  );
+}
+
+// ---- Store orders (pickup) ----
+function OrdersManager({ orders, onChanged, onError }: { orders: AdminStoreOrder[]; onChanged: () => Promise<void> | void; onError: (m: string) => void }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const money = (c: number) => '$' + ((c || 0) / 100).toFixed(2);
+
+  async function toggle(o: AdminStoreOrder) {
+    setBusyId(o.id);
+    try {
+      await adminSetStoreOrderPickedUp(o.id, !o.pickedUp);
+      await onChanged();
+    } catch (e: any) { onError(e?.message || 'Could not update order'); }
+    finally { setBusyId(null); }
+  }
+
+  const open = orders.filter(o => !o.pickedUp);
+  const done = orders.filter(o => o.pickedUp);
+
+  const row = (o: AdminStoreOrder) => (
+    <div key={o.id} className="wrs-card" style={{ padding: 16, display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', opacity: o.pickedUp ? 0.6 : 1 }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700 }}>{o.items.map(i => `${i.qty} × ${i.name}`).join(', ') || 'Order'}</div>
+        <div className="wrs-muted" style={{ fontSize: 14, marginTop: 2 }}>
+          {money(o.totalCents)}{o.taxCents > 0 ? ` (incl. tax ${money(o.taxCents)})` : ''} · {o.customerName || '—'} · {o.customerEmail || '—'}
+        </div>
+        <div className="wrs-muted" style={{ fontSize: 12, marginTop: 2 }}>
+          {new Date(o.createdAt).toLocaleString()}{o.pickedUp && o.pickedUpAt ? ` · picked up ${new Date(o.pickedUpAt).toLocaleDateString()}` : ''}
+        </div>
+      </div>
+      <button className={`wrs-btn ${o.pickedUp ? 'wrs-btn-ghost' : 'wrs-btn-green'}`} style={{ padding: '8px 14px', whiteSpace: 'nowrap' }} disabled={busyId === o.id} onClick={() => toggle(o)}>
+        {o.pickedUp ? 'Undo' : '✓ Mark picked up'}
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <div style={{ marginBottom: 14 }}>
+        <h2 className="wrs-h3" style={{ marginBottom: 2 }}>Store orders (pickup)</h2>
+        <p className="wrs-muted" style={{ margin: 0 }}>Paid Johnetta Supply orders. Tick one off once the customer picks it up.</p>
+      </div>
+      {orders.length === 0 && <p className="wrs-muted">No store orders yet.</p>}
+      {open.length > 0 && (
+        <div style={{ display: 'grid', gap: 12, marginBottom: done.length ? 24 : 0 }}>
+          <div className="wrs-muted" style={{ fontWeight: 700, fontSize: 13 }}>Awaiting pickup ({open.length})</div>
+          {open.map(row)}
+        </div>
+      )}
+      {done.length > 0 && (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div className="wrs-muted" style={{ fontWeight: 700, fontSize: 13 }}>Picked up ({done.length})</div>
+          {done.map(row)}
+        </div>
+      )}
+    </>
   );
 }
 

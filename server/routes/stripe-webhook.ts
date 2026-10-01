@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { getStripe } from '../utils/stripe';
 import { getBookingById, updateBookingWithStripeData } from '../storage/bookingsStore';
-import { mailGuestReceived, mailAdminApprovalNeeded } from '../utils/mailer';
+import { mailGuestReceived, mailAdminApprovalNeeded, mailStoreBuyerReceipt, mailStoreOwnerAlert } from '../utils/mailer';
+import { addStoreOrder, StoreOrder, StoreOrderItem } from '../storage/storeOrdersStore';
 
 const router = express.Router();
 
@@ -25,6 +26,39 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     if (event.type === 'checkout.session.completed') {
       const session: any = event.data.object;
+
+      // Store (merch) order — pickup only. Record it and notify buyer + owner.
+      if (session.metadata?.kind === 'merch') {
+        let items: StoreOrderItem[] = [];
+        try {
+          const raw = JSON.parse(session.metadata?.items || '[]');
+          items = (Array.isArray(raw) ? raw : []).map((r: any) => ({
+            name: String(r.n ?? r.name ?? 'Item'),
+            qty: Number(r.q ?? r.qty ?? 1),
+            priceCents: Number(r.p ?? r.priceCents ?? 0),
+          }));
+        } catch { /* ignore malformed metadata */ }
+
+        const order: StoreOrder = {
+          id: 'so_' + (session.id || Date.now()).toString().slice(-18),
+          createdAt: new Date().toISOString(),
+          items,
+          subtotalCents: session.amount_subtotal ?? 0,
+          taxCents: session.total_details?.amount_tax ?? 0,
+          totalCents: session.amount_total ?? 0,
+          customerName: session.customer_details?.name || undefined,
+          customerEmail: session.customer_details?.email || undefined,
+          stripeSessionId: session.id,
+          pickedUp: false,
+        };
+
+        await addStoreOrder(order);
+        if (order.customerEmail) { try { await mailStoreBuyerReceipt(order); } catch (e) { console.error('[STORE] buyer email failed', e); } }
+        try { await mailStoreOwnerAlert(order); } catch (e) { console.error('[STORE] owner email failed', e); }
+        console.log('[STORE] merch order recorded:', order.id);
+        return res.json({ received: true });
+      }
+
       const bookingId = session.metadata?.bookingId;
       if (!bookingId) return res.json({ received: true });
 
