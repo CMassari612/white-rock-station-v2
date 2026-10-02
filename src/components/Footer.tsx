@@ -84,7 +84,13 @@ export function Footer({ onNavigate }: FooterProps) {
           <div>
             <Ed as="h5" id="footer.connect.title" className="text-[var(--sand-tan)] mb-4">Connect With Us</Ed>
             <div className="flex space-x-4 mb-4">
-              <a href="#" className="text-white/80 hover:text-white transition-colors">
+              <a
+                href="https://www.facebook.com/p/White-Rock-Station-Riverfront-Resort-Marina-61593931372842/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="White Rock Station on Facebook"
+                className="text-white/80 hover:text-white transition-colors"
+              >
                 <Facebook size={20} />
               </a>
               <a href="#" className="text-white/80 hover:text-white transition-colors">
