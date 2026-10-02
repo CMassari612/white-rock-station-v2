@@ -9,7 +9,7 @@ import {
   adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
   adminSyncAirbnb,
   adminGetStore, adminUpdateStoreProduct, adminAddStoreProduct, adminDeleteStoreProduct, adminUploadStorePhoto,
-  adminGetStoreOrders, adminSetStoreOrderPickedUp, setCleaning,
+  adminGetStoreOrders, adminSetStoreOrderPickedUp, setCleaning, sendCleanerDigestTest,
   AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct, AdminStoreOrder,
 } from '../lib/adminApi';
 import { CabinCalendar } from '../components/admin/CabinCalendar';
@@ -135,6 +135,17 @@ export function AdminDashboard({ onNavigate }: Props) {
     catch (e: any) { setError(e?.message || 'Could not update cleaning status'); }
     finally { setBusyId(null); }
   }
+  const [digestBusy, setDigestBusy] = useState(false);
+  async function sendCleanerTest() {
+    const to = window.prompt('Send a test of the weekly cleaner email to which address? (Leave blank to use the configured cleaner recipients.)', '');
+    if (to === null) return; // cancelled
+    setDigestBusy(true); setError(null);
+    try {
+      const r = await sendCleanerDigestTest(to.trim() || undefined);
+      window.alert(r.sent ? `Sent to ${r.to} — ${r.count} checkout(s) in the next 7 days.` : 'No recipient configured.');
+    } catch (e: any) { setError(e?.message || 'Could not send test email'); }
+    finally { setDigestBusy(false); }
+  }
 
   const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval' || b.status === 'pending'), [bookings]);
   const editingUnit = units.find(u => u.id === editingId) || null;
@@ -151,10 +162,10 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div style={{ fontWeight: 800, fontSize: 20 }}>White Rock Station — {isAdmin ? 'Admin' : 'Cleaner'}</div>
             <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
               {isAdmin && tabBtn('bookings', 'Bookings')}
-              {tabBtn('calendar', 'Calendar')}
               {isAdmin && tabBtn('sites', 'Sites')}
               {isAdmin && tabBtn('store', 'Store')}
               {isAdmin && tabBtn('orders', 'Orders')}
+              {tabBtn('calendar', 'Calendar')}
               {tabBtn('cleaning', 'Cleaning Schedule')}
             </div>
           </div>
@@ -288,8 +299,15 @@ export function AdminDashboard({ onNavigate }: Props) {
 
         {!loading && tab === 'cleaning' && (
           <>
-            <h2 className="wrs-h3">Cleaning Schedule</h2>
-            <p className="wrs-muted" style={{ marginTop: 0 }}>Upcoming checkouts to clean. {schedule.length} upcoming.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h2 className="wrs-h3" style={{ margin: 0 }}>Cleaning Schedule</h2>
+              {isAdmin && (
+                <button className="wrs-btn wrs-btn-outline" style={{ padding: '8px 14px' }} disabled={digestBusy} onClick={sendCleanerTest}>
+                  {digestBusy ? 'Sending…' : 'Send weekly email test'}
+                </button>
+              )}
+            </div>
+            <p className="wrs-muted" style={{ marginTop: 6 }}>Upcoming checkouts to clean. {schedule.length} upcoming. The weekly email to cleaners goes out automatically Mondays at 8 AM ET.</p>
             <div className="wrs-card" style={{ padding: 0, overflow: 'hidden', marginTop: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead><tr style={{ textAlign: 'left', background: 'var(--wrs-offwhite)' }}>
