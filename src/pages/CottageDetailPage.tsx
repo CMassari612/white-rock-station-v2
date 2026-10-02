@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getUnit, computePriceBreakdown, dollars, Unit, CHECK_IN_TIME, CHECK_OUT_TIME } from '../lib/cottages';
 import { setBookingSelection } from '../lib/bookingSelection';
 import { Lightbox } from '../components/Lightbox';
+import { AvailabilityDatePicker } from '../components/AvailabilityDatePicker';
 import { Ed } from '../lib/siteText';
 
 interface Props {
@@ -137,17 +138,13 @@ export function CottageDetailPage({ slug, onNavigate }: Props) {
                 <Ed as="span" id="cottagedetail.price.weekend">Fri–Sun</Ed> {dollars(unit.weekendPriceCents ?? 0)}<Ed as="span" id="cottagedetail.price.cleaning">/night · Cleaning fee </Ed>{dollars(unit.cleaningFeeCents ?? 0)}
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
-                <div className="wrs-field" style={{ marginBottom: 0 }}>
-                  <Ed as="label" id="cottagedetail.field.checkin" className="wrs-label">Check-in</Ed>
-                  <input className="wrs-input" type="date" min={todayYMD()} value={checkIn}
-                    onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut(addDaysYMD(e.target.value, 1)); }} />
-                </div>
-                <div className="wrs-field" style={{ marginBottom: 0 }}>
-                  <Ed as="label" id="cottagedetail.field.checkout" className="wrs-label">Check-out</Ed>
-                  <input className="wrs-input" type="date" min={checkIn ? addDaysYMD(checkIn, 1) : addDaysYMD(todayYMD(), 1)} value={checkOut}
-                    onChange={e => setCheckOut(e.target.value)} />
-                </div>
+              <div style={{ marginTop: 14 }}>
+                <AvailabilityDatePicker
+                  unitId={unit.id}
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onChange={(ci, co) => { setCheckIn(ci); setCheckOut(co); }}
+                />
               </div>
 
               <div className="wrs-field" style={{ marginTop: 12 }}>
