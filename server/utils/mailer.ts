@@ -18,6 +18,14 @@ function transport(): nodemailer.Transporter | null {
   return nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
 }
 
+// Appended to every outgoing email so recipients know not to reply here.
+const UNMONITORED_HTML =
+  '<p style="margin-top:20px;padding-top:12px;border-top:1px solid #eee;font-size:12px;color:#888;line-height:1.5">' +
+  'This inbox is not monitored. For any questions, please email ' +
+  '<a href="mailto:info@whiterockstation.com" style="color:#888">info@whiterockstation.com</a>.</p>';
+const UNMONITORED_TEXT =
+  '\n\n—\nThis inbox is not monitored. For any questions, please email info@whiterockstation.com.';
+
 async function send(to: string, subject: string, html: string, text: string): Promise<void> {
   const t = transport();
   if (!t || !to) {
@@ -25,7 +33,7 @@ async function send(to: string, subject: string, html: string, text: string): Pr
     return;
   }
   try {
-    await t.sendMail({ from: getFrom(), to, subject, html, text });
+    await t.sendMail({ from: getFrom(), to, subject, html: html + UNMONITORED_HTML, text: text + UNMONITORED_TEXT });
     console.log('[MAIL] sent:', subject, '→', to);
   } catch (err) {
     console.error('[MAIL] error sending', subject, err);
