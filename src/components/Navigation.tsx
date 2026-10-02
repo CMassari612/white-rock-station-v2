@@ -32,8 +32,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
 
   return (
     <nav
-      // top offset leaves room for the fixed dev/preview banner (App.tsx); set to 0 when that banner is removed.
-      style={{ top: 30 }}
+      style={{ top: 0 }}
       className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled || isMobileMenuOpen
           ? 'bg-[var(--forest-green)] shadow-lg'
