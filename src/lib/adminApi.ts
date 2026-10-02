@@ -226,6 +226,10 @@ export async function getStaffCalendar(): Promise<StaffCalendar> {
 export async function setCleaning(unitId: string, checkout: string, cleaned: boolean): Promise<void> {
   await call('/api/staff/cleanings', 'POST', { unitId, checkout, cleaned });
 }
+// Admin: send the weekly cleaner digest now. Pass `to` for a preview to one address.
+export async function sendCleanerDigestTest(to?: string): Promise<{ sent: boolean; count: number; to: string }> {
+  return await call('/api/staff/cleaner-digest/test', 'POST', to ? { to } : {});
+}
 
 // Cleaner accounts (admin only)
 export async function getCleaners(): Promise<Cleaner[]> {
