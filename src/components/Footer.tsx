@@ -93,7 +93,13 @@ export function Footer({ onNavigate }: FooterProps) {
               >
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-white/80 hover:text-white transition-colors">
+              <a
+                href="https://www.instagram.com/whiterockstation/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="White Rock Station on Instagram"
+                className="text-white/80 hover:text-white transition-colors"
+              >
                 <Instagram size={20} />
               </a>
             </div>
