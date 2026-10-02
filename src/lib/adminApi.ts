@@ -24,8 +24,17 @@ export interface AdminBooking {
 }
 
 export interface Cleaner { id: string; name: string; phone: string; password: string; createdAt: string; }
-// Read-only cleaner view: site + address + checkout date only.
-export interface CleaningRow { id: string; site: string; address: string; checkout: string; }
+// Cleaner view: site + address + checkout date + cleaned status.
+export interface CleaningRow { id: string; unitId: string; site: string; address: string; checkout: string; cleaned: boolean; cleanedAt?: string; }
+
+// Calendar (staff) — Airbnb-style reservation bars with cleaned status.
+export interface StaffCabin { id: string; name: string; }
+export interface StaffReservation {
+  id: string; unitId: string; unitName: string; address: string;
+  start: string; end: string; kind: 'booking' | 'airbnb'; label: string;
+  cleaned: boolean; cleanedAt?: string;
+}
+export interface StaffCalendar { cabins: StaffCabin[]; reservations: StaffReservation[]; }
 
 export interface BlockedRange { id: string; start: string; end: string; reason?: string; source?: 'manual' | 'winter' | 'airbnb'; createdAt?: string; }
 export interface AdminUnit {
@@ -207,6 +216,15 @@ export async function adminReorderPhotos(id: string, photos: string[]): Promise<
 // Cleaning schedule (admin + cleaner)
 export async function getCleaningSchedule(): Promise<CleaningRow[]> {
   return (await call('/api/staff/cleaning-schedule')).schedule as CleaningRow[];
+}
+
+// Staff calendar (admin + cleaner)
+export async function getStaffCalendar(): Promise<StaffCalendar> {
+  return (await call('/api/staff/calendar')) as StaffCalendar;
+}
+// Mark/unmark a turnover (unit + checkout date) cleaned.
+export async function setCleaning(unitId: string, checkout: string, cleaned: boolean): Promise<void> {
+  await call('/api/staff/cleanings', 'POST', { unitId, checkout, cleaned });
 }
 
 // Cleaner accounts (admin only)

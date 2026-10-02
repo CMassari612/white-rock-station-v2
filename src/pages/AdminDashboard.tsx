@@ -9,7 +9,7 @@ import {
   adminUploadPhoto, adminDeletePhoto, adminReorderPhotos, adminUploadAsset,
   adminSyncAirbnb,
   adminGetStore, adminUpdateStoreProduct, adminAddStoreProduct, adminDeleteStoreProduct, adminUploadStorePhoto,
-  adminGetStoreOrders, adminSetStoreOrderPickedUp,
+  adminGetStoreOrders, adminSetStoreOrderPickedUp, setCleaning,
   AdminBooking, Cleaner, CleaningRow, AdminUnit, AdminStoreProduct, AdminStoreOrder,
 } from '../lib/adminApi';
 import { CabinCalendar } from '../components/admin/CabinCalendar';
@@ -129,6 +129,12 @@ export function AdminDashboard({ onNavigate }: Props) {
     if (!window.confirm('Remove this cleaner account?')) return;
     try { await deleteCleaner(id); await load(); } catch (e: any) { setError(e?.message || 'Could not remove cleaner'); }
   }
+  async function toggleCleaned(row: CleaningRow) {
+    setBusyId(row.id); setError(null);
+    try { await setCleaning(row.unitId, row.checkout, !row.cleaned); await load(); }
+    catch (e: any) { setError(e?.message || 'Could not update cleaning status'); }
+    finally { setBusyId(null); }
+  }
 
   const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval' || b.status === 'pending'), [bookings]);
   const editingUnit = units.find(u => u.id === editingId) || null;
@@ -145,7 +151,7 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div style={{ fontWeight: 800, fontSize: 20 }}>White Rock Station — {isAdmin ? 'Admin' : 'Cleaner'}</div>
             <div style={{ display: 'flex', gap: 16, marginTop: 6 }}>
               {isAdmin && tabBtn('bookings', 'Bookings')}
-              {isAdmin && tabBtn('calendar', 'Calendar')}
+              {tabBtn('calendar', 'Calendar')}
               {isAdmin && tabBtn('sites', 'Sites')}
               {isAdmin && tabBtn('store', 'Store')}
               {isAdmin && tabBtn('orders', 'Orders')}
@@ -219,13 +225,13 @@ export function AdminDashboard({ onNavigate }: Props) {
           </>
         )}
 
-        {!loading && isAdmin && tab === 'calendar' && (
+        {!loading && tab === 'calendar' && (
           <>
             <div style={{ marginBottom: 14 }}>
               <h2 className="wrs-h3" style={{ marginBottom: 2 }}>Calendar</h2>
-              <p className="wrs-muted" style={{ margin: 0 }}>Reservations per cabin — bars run through the nights and into the checkout morning, so you can line up cleaners.</p>
+              <p className="wrs-muted" style={{ margin: 0 }}>Reservations per cabin — bars run through the nights and into the checkout morning. Tap one to mark the turnover cleaned.</p>
             </div>
-            <CabinCalendar units={units} bookings={bookings} />
+            <CabinCalendar onChanged={load} />
           </>
         )}
 
@@ -287,17 +293,27 @@ export function AdminDashboard({ onNavigate }: Props) {
             <div className="wrs-card" style={{ padding: 0, overflow: 'hidden', marginTop: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead><tr style={{ textAlign: 'left', background: 'var(--wrs-offwhite)' }}>
-                  <th style={{ padding: '10px 12px' }}>Site</th><th style={{ padding: '10px 12px' }}>Address</th><th style={{ padding: '10px 12px' }}>Checkout date</th>
+                  <th style={{ padding: '10px 12px' }}>Site</th><th style={{ padding: '10px 12px' }}>Address</th><th style={{ padding: '10px 12px' }}>Checkout date</th><th style={{ padding: '10px 12px', textAlign: 'right' }}>Cleaned</th>
                 </tr></thead>
                 <tbody>
                   {schedule.map(r => (
-                    <tr key={r.id} style={{ borderTop: '1px solid var(--wrs-line)' }}>
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--wrs-line)', background: r.cleaned ? 'rgba(47,122,79,.06)' : undefined }}>
                       <td style={{ padding: '10px 12px', fontWeight: 700 }}>{r.site}</td>
                       <td style={{ padding: '10px 12px' }} className="wrs-muted">{r.address}</td>
                       <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--wrs-blue)' }}>{r.checkout}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <button
+                          className={`wrs-btn ${r.cleaned ? 'wrs-btn-ghost' : 'wrs-btn-green'}`}
+                          style={{ padding: '6px 12px', whiteSpace: 'nowrap' }}
+                          disabled={busyId === r.id}
+                          onClick={() => toggleCleaned(r)}
+                        >
+                          {busyId === r.id ? '…' : r.cleaned ? 'Cleaned ✓ · Undo' : '✓ Mark cleaned'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
-                  {schedule.length === 0 && <tr><td colSpan={3} style={{ padding: 16 }} className="wrs-muted">No upcoming checkouts.</td></tr>}
+                  {schedule.length === 0 && <tr><td colSpan={4} style={{ padding: 16 }} className="wrs-muted">No upcoming checkouts.</td></tr>}
                 </tbody>
               </table>
             </div>
