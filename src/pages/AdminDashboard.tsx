@@ -147,7 +147,9 @@ export function AdminDashboard({ onNavigate }: Props) {
     finally { setDigestBusy(false); }
   }
 
-  const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval' || b.status === 'pending'), [bookings]);
+  // Only card-authorized bookings await approval. A plain 'pending' booking is an
+  // unfinished/abandoned checkout (no card captured) and must not show here.
+  const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval'), [bookings]);
   const editingUnit = units.find(u => u.id === editingId) || null;
   const pill = (s: string) => <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: STATUS_COLORS[s] || '#777', padding: '2px 9px', borderRadius: 999 }}>{s.replace('_', ' ')}</span>;
   const tabBtn = (id: Tab, label: string) => (
