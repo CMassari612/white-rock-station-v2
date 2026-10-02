@@ -150,6 +150,8 @@ export function AdminDashboard({ onNavigate }: Props) {
   // Only card-authorized bookings await approval. A plain 'pending' booking is an
   // unfinished/abandoned checkout (no card captured) and must not show here.
   const awaiting = useMemo(() => bookings.filter(b => b.status === 'pending_approval'), [bookings]);
+  // Expired = abandoned/timed-out checkout, never paid. Keep these out of the list.
+  const visibleBookings = useMemo(() => bookings.filter(b => b.status !== 'expired'), [bookings]);
   const editingUnit = units.find(u => u.id === editingId) || null;
   const pill = (s: string) => <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: STATUS_COLORS[s] || '#777', padding: '2px 9px', borderRadius: 999 }}>{s.replace('_', ' ')}</span>;
   const tabBtn = (id: Tab, label: string) => (
@@ -212,14 +214,14 @@ export function AdminDashboard({ onNavigate }: Props) {
               ))}
             </div>
 
-            <h2 className="wrs-h3" style={{ marginTop: 28 }}>All bookings ({bookings.length})</h2>
+            <h2 className="wrs-h3" style={{ marginTop: 28 }}>All bookings ({visibleBookings.length})</h2>
             <div className="wrs-card" style={{ padding: 0, overflow: 'hidden', marginTop: 10 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead><tr style={{ textAlign: 'left', background: 'var(--wrs-offwhite)' }}>
                   <th style={{ padding: '10px 12px' }}>Reservation</th><th style={{ padding: '10px 12px' }}>Guest</th><th style={{ padding: '10px 12px' }}>Dates</th><th style={{ padding: '10px 12px' }}>Total</th><th style={{ padding: '10px 12px' }}>Status</th><th style={{ padding: '10px 12px' }}></th>
                 </tr></thead>
                 <tbody>
-                  {bookings.map(b => (
+                  {visibleBookings.map(b => (
                     <tr key={b.id} style={{ borderTop: '1px solid var(--wrs-line)' }}>
                       <td style={{ padding: '10px 12px' }}>{b.unitName}</td>
                       <td style={{ padding: '10px 12px' }}>{b.name}<div className="wrs-muted" style={{ fontSize: 12 }}>{b.email}</div>{addOnsLabel(b) && <div style={{ fontSize: 12, color: 'var(--wrs-blue)' }}>+ {addOnsLabel(b)}</div>}</td>

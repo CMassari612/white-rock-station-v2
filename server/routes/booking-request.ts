@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { BookingRequestInput, Booking } from '../types/booking-request';
-import { getAllBookings, addBooking, getBookingById, updateBookingStatus } from '../storage/bookingsStore';
+import { getAllBookings, addBooking, getBookingById, saveAllBookings } from '../storage/bookingsStore';
 import { getAllUnits } from '../storage/unitsStore';
 import { isUnitAvailableForRange, tentSpotsAvailable } from '../utils/availability';
 import { computePriceBreakdown } from '../utils/pricing';
@@ -80,15 +80,16 @@ router.post('/', async (req: Request<{}, {}, BookingRequestInput>, res: Response
 });
 
 // POST /api/booking/:id/abandon — called when a guest cancels/abandons Stripe
-// checkout. Releases a still-'pending' booking (no card was captured) so its
-// dates free up immediately instead of waiting for the expiry cron. Only acts on
-// 'pending' — an authorized ('pending_approval') or confirmed booking is left alone.
+// checkout. Deletes a still-'pending' booking (no card was ever captured) so it
+// leaves no record and frees its dates immediately. Only acts on 'pending' — an
+// authorized ('pending_approval') or confirmed booking is left alone.
 router.post('/:id/abandon', async (req: Request, res: Response) => {
   try {
     const booking = await getBookingById(req.params.id);
     if (!booking) return res.json({ ok: true });
     if (booking.status === 'pending') {
-      await updateBookingStatus(req.params.id, 'expired');
+      const all = await getAllBookings();
+      await saveAllBookings(all.filter(b => b.id !== req.params.id));
     }
     return res.json({ ok: true });
   } catch (err) {
