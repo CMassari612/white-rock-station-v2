@@ -92,7 +92,10 @@ router.get('/cleaning-schedule', requireStaff, async (_req: Request, res: Respon
   const today = new Date().toISOString().slice(0, 10);
   const { reservations } = await buildReservations();
   const schedule = reservations
-    .filter(r => r.end >= today)
+    // Only real guest checkouts need a turnover clean. Airbnb-synced ranges are
+    // availability blocks (incl. long "not available" holds), not reservations,
+    // so they're excluded from the cleaning list.
+    .filter(r => r.kind === 'booking' && r.end >= today)
     .sort((a, b) => a.end.localeCompare(b.end))
     .map(r => ({
       id: r.id,

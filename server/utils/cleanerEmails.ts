@@ -41,14 +41,8 @@ export async function sendWeeklyCleanerDigest(overrideTo?: string): Promise<{ se
     if (b.endDate < today || b.endDate > weekEnd) continue;
     items.push({ date: b.endDate, unitName: b.unitName || unitById.get(b.unitId)?.name || 'Cottage', guestName: firstName(b.name) });
   }
-  for (const u of units) {
-    if (u.unitType !== 'cottage') continue;
-    for (const r of (u.blockedRanges || [])) {
-      if ((r as any).source !== 'airbnb') continue;
-      if (r.end < today || r.end > weekEnd) continue;
-      items.push({ date: r.end, unitName: u.name, guestName: 'Airbnb' });
-    }
-  }
+  // Airbnb-synced ranges are availability blocks (incl. long "not available"
+  // holds), not guest reservations, so they're excluded from the cleaners' list.
 
   items.sort((a, b) => a.date.localeCompare(b.date));
 
