@@ -123,18 +123,4 @@ router.post('/cleanings', requireStaff, async (req: Request, res: Response) => {
   res.json({ ok: true, unitId, checkout, cleaned: Boolean(cleaned) });
 });
 
-// POST /api/staff/cleaner-digest/test — admin only. Sends the weekly cleaner
-// digest right now. With { to } it goes to that address only (a preview);
-// otherwise it uses the configured CLEANER_EMAILS recipients.
-router.post('/cleaner-digest/test', requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const to = (req.body?.to || '').trim() || undefined;
-    const { sendWeeklyCleanerDigest } = await import('../utils/cleanerEmails');
-    const result = await sendWeeklyCleanerDigest(to);
-    res.json(result);
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message || 'Could not send digest' });
-  }
-});
-
 export default router;

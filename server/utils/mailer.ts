@@ -183,20 +183,30 @@ export async function mailCleaningNotice(b: Booking, cleaningDate: string): Prom
   );
 }
 
-// ——— Cleaner weekly look-ahead ———
-export async function mailCleanerWeekly(to: string, items: { date: string; unitName: string; guestName?: string }[]): Promise<void> {
-  const fmt = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  const rowsHtml = items.length
-    ? '<ul>' + items.map(i => `<li><b>${fmt(i.date)}</b> — ${i.unitName}${i.guestName ? ` (${i.guestName})` : ''}</li>`).join('') + '</ul>'
-    : '<p>No checkouts scheduled in the next 7 days.</p>';
-  const rowsText = items.length
-    ? items.map(i => `${fmt(i.date)} — ${i.unitName}${i.guestName ? ` (${i.guestName})` : ''}`).join('\n')
-    : 'No checkouts scheduled in the next 7 days.';
+// ——— Cleaner notice on booking approval ———
+// Fires the moment an admin approves a stay: tells the cleaners which cabin to
+// turn over and the checkout day it needs cleaning (guest is out by 10 AM).
+// Recipients come from CLEANER_EMAILS (comma-separated), falling back to
+// ADMIN_CLEANING_EMAIL. Cottage stays only — tent sites aren't cleaned.
+export async function mailCleanerBookingApproved(b: Booking): Promise<void> {
+  const to = (process.env.CLEANER_EMAILS || process.env.ADMIN_CLEANING_EMAIL || '').trim();
+  if (!to) {
+    console.log('[CLEANER] No recipients configured — approval notice skipped for', b.id);
+    return;
+  }
+  const fmt = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const checkoutDay = fmt(b.endDate);
   await send(
     to,
-    "This week's checkouts — White Rock Station",
-    `<h2>This week's checkouts</h2><p>Cabins to turn over after checkout in the next 7 days:</p>${rowsHtml}<p>Check-out is by 10:00 AM. Questions? ${PHONE}.</p>`,
-    `This week's checkouts (next 7 days):\n${rowsText}\nCheck-out is by 10:00 AM. Questions? ${PHONE}.`
+    `New cleaning: ${b.unitName} — checkout ${checkoutDay}`,
+    `<h2>New stay booked — cleaning needed</h2>` +
+    `<p>A new reservation has been approved. Please plan to turn over this cabin on the checkout day.</p>` +
+    `<p><b>Cabin:</b> ${b.unitName}<br>` +
+    `<b>Guest:</b> ${b.name}<br>` +
+    `<b>Stay:</b> ${b.startDate} → ${b.endDate}<br>` +
+    `<b>Clean on:</b> ${checkoutDay} (guest checks out by 10:00 AM)</p>` +
+    `<p>Questions? ${PHONE}.</p>`,
+    `New stay booked — cleaning needed.\nCabin: ${b.unitName}\nGuest: ${b.name}\nStay: ${b.startDate} → ${b.endDate}\nClean on: ${checkoutDay} (checkout by 10:00 AM).\nQuestions? ${PHONE}.`
   );
 }
 

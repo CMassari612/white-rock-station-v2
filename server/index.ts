@@ -67,23 +67,6 @@ app.get('/api/cron/guest-emails', async (req, res) => {
   }
 });
 
-// Weekly cleaner digest: Vercel Cron hits this Mondays at 12:00 UTC (8 AM ET
-// during the resort's Apr–Oct season / EDT). CRON_SECRET verified when set.
-app.get('/api/cron/cleaner-weekly', async (req, res) => {
-  const secret = process.env.CRON_SECRET;
-  if (secret && (req.headers.authorization || '') !== `Bearer ${secret}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  try {
-    const { sendWeeklyCleanerDigest } = await import('./utils/cleanerEmails');
-    const result = await sendWeeklyCleanerDigest();
-    res.json({ ok: true, ...result });
-  } catch (e: any) {
-    console.error('[CRON] cleaner weekly failed:', e);
-    res.status(500).json({ error: e?.message || 'cleaner weekly failed' });
-  }
-});
-
 app.use('/api/units', unitsRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/booking', bookingRequestRoutes);

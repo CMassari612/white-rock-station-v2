@@ -4,7 +4,7 @@ import { getAllBookings, getBookingById, updateBookingWithStripeData, updateBook
 import { getAllUnits } from '../storage/unitsStore';
 import { getStripe } from '../utils/stripe';
 import { isUnitAvailableForRange, tentSpotsAvailable } from '../utils/availability';
-import { mailGuestApproved, mailGuestDeclined } from '../utils/mailer';
+import { mailGuestApproved, mailGuestDeclined, mailCleanerBookingApproved } from '../utils/mailer';
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -63,6 +63,15 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
       mapImageUrl: unit?.mapImageUrl,
       parkingImageUrl: unit?.parkingImageUrl,
     });
+
+    // Notify the cleaners the day the booking is approved (cottages only).
+    if (finalBooking.unitType === 'cottage') {
+      try {
+        await mailCleanerBookingApproved(finalBooking);
+      } catch (err: any) {
+        console.error('[ADMIN] cleaner approval notice failed', id, err?.message);
+      }
+    }
 
     const refreshed = await getBookingById(id);
     return res.json({ booking: refreshed || finalBooking });
