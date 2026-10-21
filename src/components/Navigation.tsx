@@ -32,7 +32,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
 
   return (
     <nav
-      style={{ top: 0 }}
+      // top offset leaves room for the fixed dev/preview banner (App.tsx) when VITE_DEV_SITE=true; 0 on the live site.
+      style={{ top: import.meta.env.VITE_DEV_SITE === 'true' ? 30 : 0 }}
       className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled || isMobileMenuOpen
           ? 'bg-[var(--forest-green)] shadow-lg'

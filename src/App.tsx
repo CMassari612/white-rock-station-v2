@@ -75,6 +75,11 @@ export default function App() {
 
   const isAdminArea = currentPage === 'admin-login' || ADMIN_PAGES.includes(currentPage);
 
+  // Dev/staging only. Set VITE_DEV_SITE=true in the dev Vercel project to show the
+  // yellow preview banner and enable the on-page text editor. Production leaves it
+  // unset, so this same codebase renders clean on the live site.
+  const IS_DEV = import.meta.env.VITE_DEV_SITE === 'true';
+
   const renderPage = () => {
     // Admin auth guard
     if (ADMIN_PAGES.includes(currentPage) && !getAdminPassword()) {
@@ -101,10 +106,23 @@ export default function App() {
   };
 
   return (
-    <SiteTextProvider showEditor={false}>
+    <SiteTextProvider showEditor={IS_DEV && !isAdminArea}>
       <div className="min-h-screen flex flex-col overflow-x-hidden">
+        {/* Dev/preview banner — shown only when VITE_DEV_SITE=true. Height must match the nav's top offset in Navigation. */}
+        {IS_DEV && (
+          <div
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, height: 30, zIndex: 1000,
+              background: '#f5c518', color: '#1a1a1a', textAlign: 'center',
+              fontSize: 13, fontWeight: 700, lineHeight: '30px', letterSpacing: '0.02em',
+              padding: '0 12px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+            }}
+          >
+            ⚠ Development preview — not the live White Rock Station site
+          </div>
+        )}
         {!isAdminArea && <Navigation currentPage={currentPage} onNavigate={handleNavigate} />}
-        <main className="flex-grow overflow-x-hidden">{renderPage()}</main>
+        <main className="flex-grow overflow-x-hidden" style={IS_DEV ? { paddingTop: isAdminArea ? 30 : 0 } : undefined}>{renderPage()}</main>
         {!isAdminArea && <Footer onNavigate={handleNavigate} />}
       </div>
     </SiteTextProvider>
